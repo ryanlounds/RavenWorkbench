@@ -73,7 +73,7 @@
     })();
   </script>
 
-  <!-- jsPDF for 8.5" x 11" Engineering Drawing PDF Generation -->
+  <!-- jsPDF for 8.5" x 11" ANSI-A Engineering Drawing PDF Generation -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
   <style>
@@ -95,7 +95,6 @@
   <!-- ======================================================================= -->
   <div id="authView" class="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-zinc-950 via-[#101015] to-zinc-950">
     <div class="w-full max-w-md bg-raven-panel border border-raven-border rounded-2xl shadow-2xl p-6 sm:p-8">
-      <!-- Brand Header -->
       <div class="flex items-center gap-3 mb-6">
         <div class="w-11 h-11 rounded-xl bg-raven-red/15 border border-raven-red/40 flex items-center justify-center text-raven-red shadow-inner">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
@@ -111,7 +110,6 @@
         </div>
       </div>
 
-      <!-- Auth Tabs -->
       <div id="authTabBar" class="grid grid-cols-2 gap-1 p-1 bg-zinc-900/90 border border-raven-border rounded-xl mb-6">
         <button id="tabSignInBtn" type="button" onclick="switchAuthTab('signin')" class="py-2 text-xs font-semibold rounded-lg bg-raven-red text-white transition">Sign In</button>
         <button id="tabSignUpBtn" type="button" onclick="switchAuthTab('signup')" class="py-2 text-xs font-semibold rounded-lg text-zinc-400 hover:text-white transition">Create Account</button>
@@ -121,58 +119,54 @@
       <form id="signInForm" onsubmit="handleSignInSubmit(event)" class="space-y-4">
         <div>
           <label class="block text-xs font-medium text-zinc-300 mb-1.5">Team Email</label>
-          <input id="signInEmail" type="email" required value="ryan@frc1310.ca" placeholder="you@frc1310.ca" class="w-full px-3.5 py-2.5 rounded-xl bg-zinc-900 border border-raven-border text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-raven-red" />
+          <input id="signInEmail" type="email" required placeholder="you@frc1310.ca" class="w-full px-3.5 py-2.5 rounded-xl bg-zinc-900 border border-raven-border text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-raven-red" />
         </div>
         <div>
           <label class="block text-xs font-medium text-zinc-300 mb-1.5">Password</label>
-          <input id="signInPassword" type="password" required value="Raven1310!" placeholder="••••••••" class="w-full px-3.5 py-2.5 rounded-xl bg-zinc-900 border border-raven-border text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-raven-red" />
+          <input id="signInPassword" type="password" required placeholder="••••••••" class="w-full px-3.5 py-2.5 rounded-xl bg-zinc-900 border border-raven-border text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-raven-red" />
         </div>
         <div id="signInError" class="hidden text-xs text-red-400 bg-red-950/50 border border-red-800/60 rounded-xl px-3 py-2"></div>
         <button type="submit" class="w-full py-2.5 rounded-xl bg-raven-red hover:bg-raven-redHover text-white font-semibold text-sm shadow-lg shadow-raven-red/20 transition cursor-pointer">
           Enter Workbench
         </button>
-        <div class="pt-2 border-t border-raven-border/70 flex items-center justify-between text-[11px] text-zinc-400">
-          <span>Root Admin: <code class="text-zinc-300">ryan@frc1310.ca</code></span>
-          <button type="button" onclick="fillDemoCredentials()" class="text-raven-red hover:underline font-medium">Fill Admin Login</button>
-        </div>
       </form>
 
       <!-- Create Account Form -->
       <form id="signUpForm" onsubmit="handleSignUpSubmit(event)" class="hidden space-y-3.5">
         <div>
           <label class="block text-xs font-medium text-zinc-300 mb-1">Full Name</label>
-          <input id="signUpName" type="text" required placeholder="Alex Rivera" class="w-full px-3.5 py-2 rounded-xl bg-zinc-900 border border-raven-border text-sm text-white focus:outline-none focus:border-raven-red" />
+          <input id="signUpName" type="text" required placeholder="Alex Rivera" class="w-full px-3.5 py-2 rounded-xl bg-zinc-900 border border-raven-border text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-raven-red" />
         </div>
         <div>
-          <label class="block text-xs font-medium text-zinc-300 mb-1">FRC 1310 Email</label>
-          <input id="signUpEmail" type="email" required placeholder="alex@frc1310.ca" class="w-full px-3.5 py-2 rounded-xl bg-zinc-900 border border-raven-border text-sm text-white focus:outline-none focus:border-raven-red" />
+          <label class="block text-xs font-medium text-zinc-300 mb-1">Team Email</label>
+          <input id="signUpEmail" type="email" required placeholder="alex@frc1310.ca" class="w-full px-3.5 py-2 rounded-xl bg-zinc-900 border border-raven-border text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-raven-red" />
         </div>
-        <div class="grid grid-cols-2 gap-3">
+        <div class="grid grid-cols-2 gap-2.5">
           <div>
             <label class="block text-xs font-medium text-zinc-300 mb-1">Role</label>
-            <select id="signUpRole" class="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-raven-border text-sm text-white focus:outline-none focus:border-raven-red">
+            <select id="signUpRole" class="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-raven-border text-xs text-white focus:outline-none focus:border-raven-red">
               <option value="Student">Student</option>
-              <option value="Lead">Subteam Lead</option>
+              <option value="Lead">Subsystem Lead</option>
               <option value="Mentor">Mentor</option>
             </select>
           </div>
           <div>
             <label class="block text-xs font-medium text-zinc-300 mb-1">Subteam</label>
-            <select id="signUpSubteam" class="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-raven-border text-sm text-white focus:outline-none focus:border-raven-red">
-              <option value="Design">Design / CAD</option>
-              <option value="Manufacturing">Manufacturing</option>
-              <option value="Electrical">Electrical</option>
-              <option value="Programming">Programming</option>
+            <select id="signUpSubteam" class="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-raven-border text-xs text-white focus:outline-none focus:border-raven-red">
+              <option value="Design">Design</option>
+              <option value="Drivetrain">Drivetrain</option>
+              <option value="Mechanisms">Mechanisms</option>
+              <option value="Fabrication">Fabrication</option>
             </select>
           </div>
         </div>
         <div>
           <label class="block text-xs font-medium text-zinc-300 mb-1">Password</label>
-          <input id="signUpPassword" type="password" required minlength="6" placeholder="Minimum 6 characters" class="w-full px-3.5 py-2 rounded-xl bg-zinc-900 border border-raven-border text-sm text-white focus:outline-none focus:border-raven-red" />
+          <input id="signUpPassword" type="password" required minlength="6" placeholder="Min 6 characters" class="w-full px-3.5 py-2 rounded-xl bg-zinc-900 border border-raven-border text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-raven-red" />
         </div>
         <div id="signUpError" class="hidden text-xs text-red-400 bg-red-950/50 border border-red-800/60 rounded-xl px-3 py-2"></div>
-        <button type="submit" class="w-full py-2.5 rounded-xl bg-raven-red hover:bg-raven-redHover text-white font-semibold text-sm transition cursor-pointer">
-          Register Team Account
+        <button type="submit" class="w-full py-2.5 rounded-xl bg-raven-red hover:bg-raven-redHover text-white font-semibold text-sm shadow-lg shadow-raven-red/20 transition cursor-pointer">
+          Create Account &amp; Enter
         </button>
       </form>
 
@@ -215,9 +209,9 @@
         </button>
 
         <!-- Project Selector -->
-        <div class="hidden sm:flex items-center gap-1.5 pl-3 border-l border-raven-border">
-          <select id="projectSelector" onchange="handleProjectChange(this.value)" class="px-2.5 py-1.5 rounded-lg bg-zinc-900 border border-raven-border text-xs font-medium text-zinc-200 focus:outline-none focus:border-raven-red"></select>
-          <button type="button" onclick="openNewProjectModal()" title="New Project" class="p-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-raven-border text-zinc-300 text-xs">+</button>
+        <div class="flex items-center gap-1.5 pl-2 sm:pl-3 border-l border-raven-border">
+          <select id="projectSelector" onchange="handleProjectChange(this.value)" class="px-2.5 py-1.5 rounded-lg bg-zinc-900 border border-raven-border text-xs font-medium text-zinc-200 focus:outline-none focus:border-raven-red max-w-[165px] sm:max-w-none"></select>
+          <button type="button" onclick="openNewProjectModal()" title="Create New Project" class="p-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-raven-border text-zinc-300 text-xs">+</button>
         </div>
       </div>
 
@@ -234,7 +228,7 @@
 
       <!-- Right Controls: Sync + Profile -->
       <div class="flex items-center gap-2">
-        <button type="button" onclick="triggerFullCloudSync()" title="Sync Turso SQL & Google Drive" class="px-2.5 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-raven-border text-xs font-medium text-zinc-200 flex items-center gap-1.5 transition">
+        <button type="button" onclick="triggerFullCloudSync()" title="Sync Turso Cloud SQL & Google Drive" class="px-2.5 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-raven-border text-xs font-medium text-zinc-200 flex items-center gap-1.5 transition">
           <svg id="syncSpinnerIcon" class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
           </svg>
@@ -252,11 +246,11 @@
     <!-- VIEW 1: DESIGNS EXPLORER & QUICK PREVIEW                              -->
     <!-- ===================================================================== -->
     <main id="designsView" class="flex-1 flex flex-col lg:flex-row overflow-hidden">
-      <!-- Left Folder Tree Sidebar -->
+      <!-- Left Hierarchical Folder Tree Sidebar -->
       <aside class="w-full lg:w-64 bg-raven-panel border-b lg:border-b-0 lg:border-r border-raven-border p-3 flex flex-col gap-3 shrink-0">
         <div class="flex items-center justify-between">
           <span class="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Subsystem Folders</span>
-          <button type="button" onclick="openNewFolderModal()" class="text-xs px-2 py-1 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-raven-border text-zinc-300">+ Folder</button>
+          <button type="button" onclick="openNewFolderModal()" class="text-xs px-2 py-1 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-raven-border text-zinc-300">+ Subfolder</button>
         </div>
         <div id="folderTreeContainer" class="space-y-1 max-h-48 lg:max-h-none overflow-y-auto"></div>
 
@@ -304,8 +298,8 @@
                 <th class="py-2.5 px-4">Part / Assembly</th>
                 <th class="py-2.5 px-3">Rev</th>
                 <th class="py-2.5 px-3">Lifecycle</th>
-                <th class="py-2.5 px-3">Tag</th>
-                <th class="py-2.5 px-3 hidden md:table-cell">Lock</th>
+                <th class="py-2.5 px-3">COTS Tag</th>
+                <th class="py-2.5 px-3 hidden md:table-cell">Lock Status</th>
                 <th class="py-2.5 px-4 text-right">Actions</th>
               </tr>
             </thead>
@@ -340,7 +334,7 @@
     <!-- VIEW 2: 3D CAD WORKSPACE                                              -->
     <!-- ===================================================================== -->
     <main id="workspaceView" class="hidden flex-1 flex flex-col lg:flex-row overflow-hidden">
-      <!-- Left BOM & Revision History -->
+      <!-- Left Metadata, COTS & Revision History -->
       <aside class="w-full lg:w-72 bg-raven-panel border-b lg:border-b-0 lg:border-r border-raven-border p-3.5 flex flex-col gap-4 overflow-y-auto shrink-0">
         <div>
           <button type="button" onclick="navigateToDesigns()" class="text-xs text-zinc-400 hover:text-white flex items-center gap-1 mb-2">
@@ -397,13 +391,14 @@
             <button type="button" onclick="setRenderMode('shaded')" class="px-2.5 py-1 rounded-lg text-[11px] font-medium hover:bg-zinc-800 text-zinc-200">Shaded</button>
             <button type="button" onclick="setRenderMode('wireframe')" class="px-2.5 py-1 rounded-lg text-[11px] font-medium hover:bg-zinc-800 text-zinc-200">Wireframe</button>
             <button type="button" onclick="setRenderMode('xray')" class="px-2.5 py-1 rounded-lg text-[11px] font-medium hover:bg-zinc-800 text-zinc-200">X-Ray</button>
+            <button type="button" onclick="resetViewportCamera()" class="px-2.5 py-1 rounded-lg text-[11px] font-medium hover:bg-zinc-800 text-zinc-400">Reset View</button>
           </div>
 
           <div class="flex items-center gap-2 bg-raven-panel/90 backdrop-blur border border-raven-border px-3 py-1.5 rounded-xl pointer-events-auto text-[11px]">
             <span class="text-zinc-400">Explode</span>
-            <input id="explodeSlider" type="range" min="0" max="1" step="0.05" value="0" oninput="updateExplodeFactor(parseFloat(this.value))" class="w-20 accent-raven-red" />
+            <input id="explodeSlider" type="range" min="0" max="1" step="0.05" value="0" oninput="updateExplodeFactor(parseFloat(this.value))" class="w-16 sm:w-20 accent-raven-red" />
             <span class="text-zinc-400 ml-1">Section</span>
-            <input id="sectionSlider" type="range" min="-1.5" max="1.5" step="0.05" value="1.5" oninput="updateSectionPlane(parseFloat(this.value))" class="w-20 accent-raven-red" />
+            <input id="sectionSlider" type="range" min="-1.5" max="1.5" step="0.05" value="1.5" oninput="updateSectionPlane(parseFloat(this.value))" class="w-16 sm:w-20 accent-raven-red" />
           </div>
         </div>
 
@@ -421,7 +416,10 @@
       <!-- Right Review Pins & BOM -->
       <aside class="w-full lg:w-72 bg-raven-panel border-t lg:border-t-0 lg:border-l border-raven-border p-3.5 flex flex-col gap-4 overflow-y-auto shrink-0">
         <div>
-          <h3 class="text-[11px] font-bold uppercase tracking-wider text-zinc-400 mb-2">Bill of Materials</h3>
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Bill of Materials</h3>
+            <button type="button" onclick="openAddBomItemPrompt()" class="text-[11px] text-raven-red hover:underline">+ Add Item</button>
+          </div>
           <div id="wsBomList" class="space-y-1.5 text-xs"></div>
         </div>
 
@@ -457,9 +455,12 @@
         <div class="max-w-4xl w-full mx-auto flex flex-wrap items-center justify-between gap-3 mb-4">
           <div>
             <h3 id="prodSheetHeading" class="text-base font-bold text-white">Select a Released Part</h3>
-            <p id="prodSheetSubheading" class="text-xs text-zinc-400">Auto-dimensioned 8.5" × 11" ANSI-A shop drawing sheet</p>
+            <p id="prodSheetSubheading" class="text-xs text-zinc-400">Auto-dimensioned 8.5" × 11" ANSI-A shop drawing sheet (Outer + Interior Feature Callouts)</p>
           </div>
           <div class="flex items-center gap-2">
+            <button id="addCustomDimBtn" type="button" onclick="promptAddCustomDimension()" disabled class="px-3 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 disabled:opacity-40 text-zinc-200 text-xs font-medium transition">
+              + Add Callout
+            </button>
             <button id="downloadProdPdfBtn" type="button" onclick="downloadSelectedProductionPdf()" disabled class="px-4 py-2 rounded-xl bg-raven-red hover:bg-raven-redHover disabled:opacity-40 text-white text-xs font-semibold shadow transition">
               Download 8.5" × 11" PDF
             </button>
@@ -476,8 +477,51 @@
   </div>
 
   <!-- ======================================================================= -->
-  <!-- MODALS (NEW CAD, CHECK-IN, NEW FOLDER/PROJECT, PROFILE & CLOUD CONFIG)  -->
+  <!-- MODALS (NEW CAD, CHECK-IN, NEW PROJECT/FOLDER, PROFILE & ADMIN ROSTER)  -->
   <!-- ======================================================================= -->
+  <!-- New Project Modal -->
+  <div id="newProjectModal" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+    <form onsubmit="handleCreateNewProject(event)" class="w-full max-w-sm bg-raven-panel border border-raven-border rounded-2xl p-5 space-y-3.5 shadow-2xl">
+      <div class="flex items-center justify-between">
+        <h3 class="text-sm font-bold text-white">Create Robot / Subsystem Project</h3>
+        <button type="button" onclick="closeModal('newProjectModal')" class="text-zinc-400 hover:text-white">✕</button>
+      </div>
+      <div>
+        <label class="block text-[11px] text-zinc-400 mb-1">Project Code</label>
+        <input id="newProjCodeInput" type="text" required placeholder="FRC-2027" class="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-raven-border text-xs font-mono text-white" />
+      </div>
+      <div>
+        <label class="block text-[11px] text-zinc-400 mb-1">Project Name</label>
+        <input id="newProjNameInput" type="text" required placeholder="2027 Competition Robot" class="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-raven-border text-xs text-white" />
+      </div>
+      <div class="flex justify-end gap-2 pt-2">
+        <button type="button" onclick="closeModal('newProjectModal')" class="px-3.5 py-2 rounded-xl bg-zinc-900 text-xs text-zinc-300">Cancel</button>
+        <button type="submit" class="px-4 py-2 rounded-xl bg-raven-red text-xs font-semibold text-white">Create Project</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- New Subfolder Modal -->
+  <div id="newFolderModal" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+    <form onsubmit="handleCreateNewFolder(event)" class="w-full max-w-sm bg-raven-panel border border-raven-border rounded-2xl p-5 space-y-3.5 shadow-2xl">
+      <div class="flex items-center justify-between">
+        <h3 class="text-sm font-bold text-white">Create Subsystem Subfolder</h3>
+        <button type="button" onclick="closeModal('newFolderModal')" class="text-zinc-400 hover:text-white">✕</button>
+      </div>
+      <div class="text-[11px] text-zinc-400">
+        Parent Path: <span id="newFolderParentLabel" class="font-mono text-zinc-200">/</span>
+      </div>
+      <div>
+        <label class="block text-[11px] text-zinc-400 mb-1">Folder Name</label>
+        <input id="newFolderNameInput" type="text" required placeholder="Swerve Modules" class="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-raven-border text-xs text-white" />
+      </div>
+      <div class="flex justify-end gap-2 pt-2">
+        <button type="button" onclick="closeModal('newFolderModal')" class="px-3.5 py-2 rounded-xl bg-zinc-900 text-xs text-zinc-300">Cancel</button>
+        <button type="submit" class="px-4 py-2 rounded-xl bg-raven-red text-xs font-semibold text-white">Create Folder</button>
+      </div>
+    </form>
+  </div>
+
   <!-- New CAD Asset Modal -->
   <div id="newAssetModal" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
     <form onsubmit="handleCreateNewAsset(event)" class="w-full max-w-md bg-raven-panel border border-raven-border rounded-2xl p-5 space-y-3.5 shadow-2xl">
@@ -496,7 +540,7 @@
         </div>
       </div>
       <div>
-        <label class="block text-[11px] text-zinc-400 mb-1">CAD File (.STL or .OBJ recommended for 3D &amp; Drawings)</label>
+        <label class="block text-[11px] text-zinc-400 mb-1">CAD File (.STL, .OBJ, .SLDPRT, .SLDASM, .STEP)</label>
         <input id="newAssetFileInput" type="file" accept=".stl,.obj,.step,.stp,.sldprt,.sldasm" onchange="autofillNewAssetName(this)" class="w-full text-xs text-zinc-300 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-zinc-800 file:text-zinc-200 hover:file:bg-zinc-700" />
       </div>
       <div>
@@ -532,7 +576,7 @@
         <button type="button" onclick="closeModal('checkInModal')" class="text-zinc-400 hover:text-white">✕</button>
       </div>
       <div>
-        <label class="block text-[11px] text-zinc-400 mb-1">Updated CAD Mesh (.STL / .OBJ)</label>
+        <label class="block text-[11px] text-zinc-400 mb-1">Updated CAD File (.STL, .OBJ, .SLDPRT, .STEP)</label>
         <input id="checkInFileInput" type="file" accept=".stl,.obj,.step,.stp,.sldprt,.sldasm" class="w-full text-xs text-zinc-300 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-zinc-800 file:text-zinc-200" />
       </div>
       <div>
@@ -560,9 +604,9 @@
     </form>
   </div>
 
-  <!-- Profile, Turso SQL & Google Drive Settings Modal -->
+  <!-- Profile, Turso SQL, Google Drive & Mentor/Admin Roster Modal -->
   <div id="profileModal" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="w-full max-w-lg bg-raven-panel border border-raven-border rounded-2xl p-5 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
+    <div class="w-full max-w-xl bg-raven-panel border border-raven-border rounded-2xl p-5 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
       <div class="flex items-center justify-between">
         <div>
           <h3 id="profileModalName" class="text-base font-bold text-white">User Profile</h3>
@@ -574,7 +618,7 @@
       <!-- Google Drive Vault Settings -->
       <div class="p-3.5 rounded-xl bg-zinc-900 border border-raven-border space-y-2.5">
         <div class="flex items-center justify-between">
-          <span class="text-xs font-bold text-white">Google Drive Folder Storage</span>
+          <span class="text-xs font-bold text-white">Google Drive Folder Storage &amp; .revisions/ Archive</span>
           <span id="driveModalStatus" class="text-[11px] font-mono text-zinc-400">Disconnected</span>
         </div>
         <div>
@@ -594,7 +638,7 @@
       <!-- Turso Cloud SQL Settings -->
       <div class="p-3.5 rounded-xl bg-zinc-900 border border-raven-border space-y-2.5">
         <div class="flex items-center justify-between">
-          <span class="text-xs font-bold text-white">Turso Cloud SQL Database</span>
+          <span class="text-xs font-bold text-white">Turso Cloud SQL Database (Normalized Tables)</span>
           <span id="tursoModalStatus" class="text-[11px] font-mono text-zinc-400">Local SQLite</span>
         </div>
         <div>
@@ -608,6 +652,15 @@
         <button type="button" onclick="saveAndConnectTurso()" class="w-full py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold transition">
           Connect &amp; Sync Turso SQL
         </button>
+      </div>
+
+      <!-- Mentor / Admin Team Roster & Password Management -->
+      <div id="mentorRosterSection" class="p-3.5 rounded-xl bg-zinc-900 border border-raven-border space-y-2.5">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-white">Team Roster &amp; Access Control</span>
+          <span class="text-[10px] font-mono text-zinc-400">Mentor / Admin</span>
+        </div>
+        <div id="teamRosterList" class="space-y-1.5 max-h-40 overflow-y-auto text-xs"></div>
       </div>
 
       <div class="flex items-center justify-between pt-2 border-t border-raven-border">
@@ -626,63 +679,121 @@
   <!-- ======================================================================= -->
   <script>
     // -------------------------------------------------------------------------
-    // GLOBAL APPLICATION STATE
+    // GLOBAL APPLICATION STATE & SEED DATA
     // -------------------------------------------------------------------------
+    const DEFAULT_SEED_STATE = {
+      users: [
+        {
+          id: 'usr-admin-1310',
+          name: 'Ryan Lounds',
+          email: 'ryan@frc1310.ca',
+          passwordHash: 'Raven1310!',
+          role: 'Mentor',
+          subteam: 'Design',
+          mustChangePassword: false
+        }
+      ],
+      projects: [
+        { id: 'proj-2026', code: 'FRC-2026', name: '2026 Competition Robot' }
+      ],
+      folders: [
+        { id: 'fld-root', projectId: 'proj-2026', path: '/', name: 'FRC-2026 Root' },
+        { id: 'fld-drive', projectId: 'proj-2026', path: '/Drivetrain', name: 'Drivetrain' },
+        { id: 'fld-intake', projectId: 'proj-2026', path: '/Intake', name: 'Intake' }
+      ],
+      files: [
+        {
+          id: 'file-seed-1',
+          projectId: 'proj-2026',
+          partNumber: 'PRT-1014',
+          fileName: 'Swerve_Corner_Gusset.stl',
+          directoryPath: '/Drivetrain',
+          lifecycle: 'Released',
+          activeRev: 1,
+          lockedBy: null,
+          lockedByEmail: null,
+          isCots: false,
+          customDimensions: [],
+          bom: [{ partNo: 'PRT-1014', desc: 'Swerve Corner Gusset', qty: 4, material: '6061-T6 Aluminum' }],
+          pins: [{ id: 'pin-1', author: 'Ryan Lounds', text: 'Verified 0.25in plate stock thickness for CNC router.', timestamp: '2026-02-14 18:20' }],
+          revisions: [
+            {
+              id: 'rev-seed-1',
+              rev: 1,
+              author: 'Ryan Lounds',
+              notes: 'Initial pocketing & swerve bolt pattern release',
+              massKg: 0.34,
+              bbox: '177.8 x 127.0 x 6.35 mm',
+              timestamp: '2026-02-14 18:15',
+              meshData: null,
+              hasBinaryMesh: false
+            }
+          ]
+        },
+        {
+          id: 'file-seed-cots',
+          projectId: 'proj-2026',
+          partNumber: 'WCP-0421',
+          fileName: 'Kraken_X60_Motor_COTS.stl',
+          directoryPath: '/Drivetrain',
+          lifecycle: 'Released',
+          activeRev: 1,
+          lockedBy: null,
+          lockedByEmail: null,
+          isCots: true,
+          customDimensions: [],
+          bom: [{ partNo: 'WCP-0421', desc: 'Kraken X60 Brushless Motor', qty: 8, material: 'COTS Assembly' }],
+          pins: [],
+          revisions: [
+            {
+              id: 'rev-seed-cots-1',
+              rev: 1,
+              author: 'Ryan Lounds',
+              notes: 'Vendor STEP converted to STL reference',
+              massKg: 0.49,
+              bbox: '60.0 x 60.0 x 82.0 mm',
+              timestamp: '2026-02-10 14:00',
+              meshData: null,
+              hasBinaryMesh: false
+            }
+          ]
+        }
+      ],
+      cloudConfig: {
+        tursoUrl: localStorage.getItem('raven_turso_url') || '',
+        tursoToken: localStorage.getItem('raven_turso_token') || '',
+        driveClientId: localStorage.getItem('raven_drive_client_id') || '',
+        driveFolderId: localStorage.getItem('raven_drive_folder_id') || ''
+      }
+    };
+
     const APP_STATE = {
       currentUser: null,
-      users: [],
-      projects: [],
-      folders: [],
-      files: [],
+      activeTab: 'designs',
       activeProjectId: 'proj-2026',
       activeFolderPath: '/',
       selectedFileId: null,
       selectedProductionFileId: null,
-      activeTab: 'designs',
       renderMode: 'shaded',
       explodeFactor: 0,
       diffBaseRev: null,
-      cloudConfig: {
-        driveClientId: localStorage.getItem('raven_drive_client_id') || '',
-        driveFolderId: localStorage.getItem('raven_drive_folder_id') || '',
-        tursoUrl: localStorage.getItem('raven_turso_url') || '',
-        tursoToken: localStorage.getItem('raven_turso_token') || ''
-      }
+      users: JSON.parse(JSON.stringify(DEFAULT_SEED_STATE.users)),
+      projects: JSON.parse(JSON.stringify(DEFAULT_SEED_STATE.projects)),
+      folders: JSON.parse(JSON.stringify(DEFAULT_SEED_STATE.folders)),
+      files: JSON.parse(JSON.stringify(DEFAULT_SEED_STATE.files)),
+      cloudConfig: { ...DEFAULT_SEED_STATE.cloudConfig }
     };
 
     // -------------------------------------------------------------------------
-    // UI UTILITIES & NOTIFICATIONS
+    // UI HELPERS (MODALS, TOASTS, ESCAPING)
     // -------------------------------------------------------------------------
-    function showToast(message, type = 'info') {
-      const host = document.getElementById('toastContainer');
-      if (!host) return;
-      const colors = {
-        info: 'bg-zinc-900 border-zinc-700 text-zinc-100',
-        success: 'bg-emerald-950/95 border-emerald-700 text-emerald-200',
-        warn: 'bg-amber-950/95 border-amber-700 text-amber-200',
-        error: 'bg-red-950/95 border-red-700 text-red-200'
-      };
-      const el = document.createElement('div');
-      el.className = `pointer-events-auto px-3.5 py-2.5 rounded-xl border text-xs font-medium shadow-xl transition-all ${colors[type] || colors.info}`;
-      el.textContent = message;
-      host.appendChild(el);
-      setTimeout(() => {
-        el.style.opacity = '0';
-        setTimeout(() => el.remove(), 250);
-      }, 3600);
-    }
-
     function escapeHtml(str) {
       return String(str ?? '')
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;');
-    }
-
-    function closeModal(id) {
-      const el = document.getElementById(id);
-      if (el) el.classList.add('hidden');
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
     }
 
     function openModal(id) {
@@ -690,58 +801,90 @@
       if (el) el.classList.remove('hidden');
     }
 
+    function closeModal(id) {
+      const el = document.getElementById(id);
+      if (el) el.classList.add('hidden');
+    }
+
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      if (!container) return;
+      const styles = {
+        success: 'bg-emerald-950/95 border-emerald-500/50 text-emerald-200',
+        error: 'bg-red-950/95 border-red-500/50 text-red-200',
+        warn: 'bg-amber-950/95 border-amber-500/50 text-amber-200',
+        info: 'bg-zinc-900/95 border-zinc-700 text-zinc-100'
+      };
+      const el = document.createElement('div');
+      el.className = `pointer-events-auto px-3.5 py-2.5 rounded-xl border shadow-xl text-xs font-medium transition-all ${styles[type] || styles.info}`;
+      el.textContent = message;
+      container.appendChild(el);
+      setTimeout(() => {
+        el.style.opacity = '0';
+        setTimeout(() => el.remove(), 250);
+      }, 3600);
+    }
+
     // -------------------------------------------------------------------------
-    // INDEXEDDB BINARY MESH VAULT (FOR REAL .STL / .OBJ ARRAYBUFFERS)
+    // INDEXEDDB BINARY MESH VAULT (FOR .STL / .OBJ FILES)
     // -------------------------------------------------------------------------
     const LocalMeshVault = {
       dbPromise: null,
       open() {
         if (this.dbPromise) return this.dbPromise;
-        this.dbPromise = new Promise(resolve => {
-          const req = indexedDB.open('RavenMeshVaultDB', 1);
+        this.dbPromise = new Promise((resolve, reject) => {
+          const req = indexedDB.open('RavenWorkbenchMeshVault', 1);
           req.onupgradeneeded = () => {
             const db = req.result;
             if (!db.objectStoreNames.contains('meshes')) db.createObjectStore('meshes');
           };
           req.onsuccess = () => resolve(req.result);
-          req.onerror = () => resolve(null);
+          req.onerror = () => reject(req.error);
         });
         return this.dbPromise;
       },
       async putBinary(key, arrayBuffer) {
-        const db = await this.open();
-        if (!db || !arrayBuffer) return;
-        return new Promise(resolve => {
-          const tx = db.transaction('meshes', 'readwrite');
-          tx.objectStore('meshes').put(arrayBuffer, key);
-          tx.oncomplete = () => resolve();
-          tx.onerror = () => resolve();
-        });
+        try {
+          const db = await this.open();
+          await new Promise((resolve, reject) => {
+            const tx = db.transaction('meshes', 'readwrite');
+            tx.objectStore('meshes').put(arrayBuffer, key);
+            tx.oncomplete = resolve;
+            tx.onerror = () => reject(tx.error);
+          });
+        } catch (err) {
+          console.warn('IndexedDB mesh store warning:', err);
+        }
       },
       async getBinary(key) {
-        const db = await this.open();
-        if (!db) return null;
-        return new Promise(resolve => {
-          const tx = db.transaction('meshes', 'readonly');
-          const req = tx.objectStore('meshes').get(key);
-          req.onsuccess = () => resolve(req.result || null);
-          req.onerror = () => resolve(null);
-        });
+        try {
+          const db = await this.open();
+          return await new Promise((resolve, reject) => {
+            const tx = db.transaction('meshes', 'readonly');
+            const req = tx.objectStore('meshes').get(key);
+            req.onsuccess = () => resolve(req.result || null);
+            req.onerror = () => reject(req.error);
+          });
+        } catch (_) {
+          return null;
+        }
       }
     };
 
     // -------------------------------------------------------------------------
-    // LOCAL SQLITE WASM ENGINE + JSON FALLBACK
+    // LOCAL SQLITE WASM ENGINE + LOCALSTORAGE SNAPSHOT PERSISTENCE
     // -------------------------------------------------------------------------
     const LocalSqliteEngine = {
       db: null,
+      STORAGE_KEY: 'raven_workbench_sqlite_snapshot_v3',
+
       async init() {
         try {
-          if (typeof initSqlJs === 'function') {
-            const SQL = await initSqlJs({
+          if (typeof window.initSqlJs === 'function') {
+            const SQL = await window.initSqlJs({
               locateFile: file => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/${file}`
             });
-            const savedB64 = localStorage.getItem('raven_sqlite_b64');
+            const savedB64 = localStorage.getItem(this.STORAGE_KEY + '_wasm');
             if (savedB64) {
               const bin = Uint8Array.from(atob(savedB64), c => c.charCodeAt(0));
               this.db = new SQL.Database(bin);
@@ -751,20 +894,44 @@
             this.ensureSchema();
           }
         } catch (err) {
-          console.warn('SQLite WASM fallback to localStorage JSON:', err);
-          this.db = null;
+          console.warn('SQLite WASM fallback to JSON persistence:', err);
         }
-        this.loadIntoAppState();
+
+        const rawJson = localStorage.getItem(this.STORAGE_KEY);
+        if (rawJson) {
+          try {
+            const parsed = JSON.parse(rawJson);
+            if (Array.isArray(parsed.users) && parsed.users.length > 0) APP_STATE.users = parsed.users;
+            if (Array.isArray(parsed.projects) && parsed.projects.length > 0) APP_STATE.projects = parsed.projects;
+            if (Array.isArray(parsed.folders) && parsed.folders.length > 0) APP_STATE.folders = parsed.folders;
+            if (Array.isArray(parsed.files)) APP_STATE.files = parsed.files;
+            if (parsed.cloudConfig) {
+              APP_STATE.cloudConfig = { ...APP_STATE.cloudConfig, ...parsed.cloudConfig };
+            }
+          } catch (_) {}
+        } else {
+          this.saveFromAppState();
+        }
+
+        if (!APP_STATE.projects.some(p => p.id === APP_STATE.activeProjectId) && APP_STATE.projects[0]) {
+          APP_STATE.activeProjectId = APP_STATE.projects[0].id;
+        }
+
+        const badge = document.getElementById('dbStatusBadge');
+        if (badge) badge.textContent = this.db ? 'SQLite WASM' : 'Local Storage';
       },
+
       ensureSchema() {
         if (!this.db) return;
         this.db.run(`
-          CREATE TABLE IF NOT EXISTS kv_store (
-            k TEXT PRIMARY KEY,
-            v TEXT
+          CREATE TABLE IF NOT EXISTS app_snapshot (
+            id TEXT PRIMARY KEY,
+            payload TEXT NOT NULL,
+            updated_at TEXT NOT NULL
           );
         `);
       },
+
       saveFromAppState() {
         const snapshot = {
           users: APP_STATE.users,
@@ -773,292 +940,415 @@
           files: APP_STATE.files,
           cloudConfig: APP_STATE.cloudConfig
         };
-        localStorage.setItem('raven_pdm_snapshot_v1', JSON.stringify(snapshot));
+        const jsonStr = JSON.stringify(snapshot);
+        localStorage.setItem(this.STORAGE_KEY, jsonStr);
         if (this.db) {
           try {
-            this.db.run('INSERT OR REPLACE INTO kv_store (k, v) VALUES (?, ?)', ['snapshot', JSON.stringify(snapshot)]);
+            this.db.run(
+              `INSERT OR REPLACE INTO app_snapshot (id, payload, updated_at) VALUES (?, ?, ?)`,
+              ['primary', jsonStr, new Date().toISOString()]
+            );
             const exported = this.db.export();
             let binary = '';
             for (let i = 0; i < exported.length; i++) binary += String.fromCharCode(exported[i]);
-            localStorage.setItem('raven_sqlite_b64', btoa(binary));
+            localStorage.setItem(this.STORAGE_KEY + '_wasm', btoa(binary));
           } catch (_) {}
         }
-      },
-      loadIntoAppState() {
-        let parsed = null;
-        if (this.db) {
-          try {
-            const res = this.db.exec("SELECT v FROM kv_store WHERE k = 'snapshot'");
-            if (res[0]?.values?.[0]?.[0]) parsed = JSON.parse(res[0].values[0][0]);
-          } catch (_) {}
-        }
-        if (!parsed) {
-          try {
-            const raw = localStorage.getItem('raven_pdm_snapshot_v1');
-            if (raw) parsed = JSON.parse(raw);
-          } catch (_) {}
-        }
-
-        if (parsed && Array.isArray(parsed.users) && parsed.users.length > 0) {
-          APP_STATE.users = parsed.users;
-          APP_STATE.projects = parsed.projects || [];
-          APP_STATE.folders = parsed.folders || [];
-          APP_STATE.files = parsed.files || [];
-          if (parsed.cloudConfig) {
-            APP_STATE.cloudConfig = { ...APP_STATE.cloudConfig, ...parsed.cloudConfig };
-          }
-        } else {
-          this.seedDefaults();
-          this.saveFromAppState();
-        }
-      },
-      seedDefaults() {
-        APP_STATE.users = [
-          {
-            id: 'usr-admin',
-            name: 'Ryan Lounds',
-            email: 'ryan@frc1310.ca',
-            passwordHash: 'Raven1310!',
-            role: 'Mentor',
-            subteam: 'Design',
-            mustChangePassword: false
-          }
-        ];
-        APP_STATE.projects = [
-          { id: 'proj-2026', code: 'FRC-2026', name: '2026 Competition Robot' },
-          { id: 'proj-swerve', code: 'SWV-MK4I', name: 'Swerve Drive Base' }
-        ];
-        APP_STATE.folders = [
-          { id: 'fld-root', projectId: 'proj-2026', path: '/', name: 'FRC-2026 Root' },
-          { id: 'fld-dt', projectId: 'proj-2026', path: '/Drivetrain', name: 'Drivetrain' },
-          { id: 'fld-int', projectId: 'proj-2026', path: '/Intake', name: 'Intake' },
-          { id: 'fld-elv', projectId: 'proj-2026', path: '/Elevator', name: 'Elevator' }
-        ];
-        APP_STATE.files = [
-          {
-            id: 'file-101',
-            projectId: 'proj-2026',
-            partNumber: 'PRT-1310-101',
-            fileName: 'Swerve_Corner_Gusset.stl',
-            directoryPath: '/Drivetrain',
-            lifecycle: 'Released',
-            activeRev: 2,
-            lockedBy: null,
-            lockedByEmail: null,
-            isCots: false,
-            bom: [{ partNo: 'PRT-1310-101', desc: 'Swerve Corner Gusset 0.25in', qty: 4, material: '6061-T6 Aluminum' }],
-            pins: [{ id: 'pin-1', author: 'Ryan Lounds', text: 'Verified 10-32 clearance holes on corner pattern.', timestamp: '2026-02-14 18:20' }],
-            revisions: [
-              { id: 'rev-101-1', rev: 1, author: 'Ryan Lounds', notes: 'Initial gusset layout', massKg: 0.24, bbox: '152.4 x 114.3 x 6.35 mm', timestamp: '2026-02-10 16:05', meshData: null },
-              { id: 'rev-101-2', rev: 2, author: 'Ryan Lounds', notes: 'Added weight-relief pocket & fillets', massKg: 0.19, bbox: '152.4 x 114.3 x 6.35 mm', timestamp: '2026-02-14 18:15', meshData: null }
-            ]
-          },
-          {
-            id: 'file-102',
-            projectId: 'proj-2026',
-            partNumber: 'COTS-KRAKEN-X60',
-            fileName: 'Kraken_X60_Motor.stl',
-            directoryPath: '/Drivetrain',
-            lifecycle: 'Released',
-            activeRev: 1,
-            lockedBy: null,
-            lockedByEmail: null,
-            isCots: true,
-            bom: [{ partNo: 'COTS-KRAKEN-X60', desc: 'WCP Kraken X60 Brushless Motor', qty: 8, material: 'COTS Assembly' }],
-            pins: [],
-            revisions: [
-              { id: 'rev-102-1', rev: 1, author: 'Ryan Lounds', notes: 'Vendor STEP converted to STL', massKg: 0.49, bbox: '60.0 x 60.0 x 78.5 mm', timestamp: '2026-02-08 14:00', meshData: null }
-            ]
-          },
-          {
-            id: 'file-103',
-            projectId: 'proj-2026',
-            partNumber: 'PRT-1310-204',
-            fileName: 'Intake_Pivot_Arm.stl',
-            directoryPath: '/Intake',
-            lifecycle: 'In Work',
-            activeRev: 1,
-            lockedBy: null,
-            lockedByEmail: null,
-            isCots: false,
-            bom: [{ partNo: 'PRT-1310-204', desc: 'Intake Pivot Plate 3/8in', qty: 2, material: '6061-T6 Aluminum' }],
-            pins: [],
-            revisions: [
-              { id: 'rev-103-1', rev: 1, author: 'Ryan Lounds', notes: 'Initial pivot arm profile', massKg: 0.42, bbox: '279.4 x 88.9 x 9.52 mm', timestamp: '2026-02-15 19:40', meshData: null }
-            ]
-          }
-        ];
       }
     };
 
     // -------------------------------------------------------------------------
-    // TURSO CLOUD SQL SYNC ENGINE
+    // TURSO CLOUD SQL SYNC CLIENT (LIBSQL HTTP PIPELINE)
     // -------------------------------------------------------------------------
     const TursoCloudSQL = {
-      normalizeHttpUrl(rawUrl) {
-        if (!rawUrl) return '';
-        return rawUrl.trim().replace(/^libsql:\/\//i, 'https://').replace(/\/+$/, '');
+      getEndpoint() {
+        const raw = (APP_STATE.cloudConfig.tursoUrl || '').trim();
+        if (!raw) return '';
+        return raw.replace(/^libsql:\/\//i, 'https://').replace(/\/+$/, '') + '/v2/pipeline';
       },
-      async executePipeline(statements) {
-        const baseUrl = this.normalizeHttpUrl(APP_STATE.cloudConfig.tursoUrl);
+
+      async executeStatements(stmts) {
+        const endpoint = this.getEndpoint();
         const token = (APP_STATE.cloudConfig.tursoToken || '').trim();
-        if (!baseUrl || !token) return null;
-        const resp = await fetch(`${baseUrl}/v2/pipeline`, {
+        if (!endpoint || !token) return null;
+
+        const requests = stmts.map(s => ({
+          type: 'execute',
+          stmt: typeof s === 'string'
+            ? { sql: s }
+            : {
+                sql: s.sql,
+                args: (s.args || []).map(v =>
+                  v === null || v === undefined
+                    ? { type: 'null' }
+                    : typeof v === 'number'
+                      ? (Number.isInteger(v) ? { type: 'integer', value: String(v) } : { type: 'float', value: v })
+                      : { type: 'text', value: String(v) }
+                )
+              }
+        }));
+        requests.push({ type: 'close' });
+
+        const resp = await fetch(endpoint, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({
-            requests: [
-              ...statements.map(sql => ({ type: 'execute', stmt: { sql } })),
-              { type: 'close' }
-            ]
-          })
+          body: JSON.stringify({ requests })
         });
         if (!resp.ok) throw new Error(`Turso HTTP ${resp.status}`);
-        return resp.json();
+        return await resp.json();
       },
-      async pushAllFromState() {
-        const baseUrl = this.normalizeHttpUrl(APP_STATE.cloudConfig.tursoUrl);
-        if (!baseUrl || !APP_STATE.cloudConfig.tursoToken) return false;
-        const payload = JSON.stringify({
-          users: APP_STATE.users,
-          projects: APP_STATE.projects,
-          folders: APP_STATE.folders,
-          files: APP_STATE.files,
-          driveConfig: {
-            driveClientId: APP_STATE.cloudConfig.driveClientId,
-            driveFolderId: APP_STATE.cloudConfig.driveFolderId
-          }
-        }).replace(/'/g, "''");
 
-        await this.executePipeline([
-          `CREATE TABLE IF NOT EXISTS raven_state (id TEXT PRIMARY KEY, json_data TEXT, updated_at TEXT);`,
-          `INSERT OR REPLACE INTO raven_state (id, json_data, updated_at) VALUES ('global', '${payload}', '${new Date().toISOString()}');`
+      async ensureTables() {
+        await this.executeStatements([
+          `CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, name TEXT, email TEXT UNIQUE, password_hash TEXT, role TEXT, subteam TEXT, must_change_password INTEGER)`,
+          `CREATE TABLE IF NOT EXISTS projects (id TEXT PRIMARY KEY, code TEXT, name TEXT)`,
+          `CREATE TABLE IF NOT EXISTS folders (id TEXT PRIMARY KEY, project_id TEXT, path TEXT, name TEXT)`,
+          `CREATE TABLE IF NOT EXISTS cad_files (id TEXT PRIMARY KEY, project_id TEXT, part_number TEXT, file_name TEXT, directory_path TEXT, lifecycle TEXT, active_rev INTEGER, locked_by TEXT, locked_by_email TEXT, is_cots INTEGER, custom_dimensions_json TEXT, bom_json TEXT, pins_json TEXT)`,
+          `CREATE TABLE IF NOT EXISTS revisions (id TEXT PRIMARY KEY, file_id TEXT, rev INTEGER, author TEXT, notes TEXT, mass_kg REAL, bbox TEXT, timestamp TEXT, mesh_data TEXT, has_binary_mesh INTEGER)`,
+          `CREATE TABLE IF NOT EXISTS app_config (key TEXT PRIMARY KEY, value TEXT)`
         ]);
+      },
+
+      async pushAllFromState() {
+        if (!this.getEndpoint() || !APP_STATE.cloudConfig.tursoToken) return false;
+        await this.ensureTables();
+        const stmts = [
+          `DELETE FROM users`,
+          `DELETE FROM projects`,
+          `DELETE FROM folders`,
+          `DELETE FROM cad_files`,
+          `DELETE FROM revisions`
+        ];
+
+        for (const u of APP_STATE.users) {
+          stmts.push({
+            sql: `INSERT INTO users (id, name, email, password_hash, role, subteam, must_change_password) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            args: [u.id, u.name, u.email, u.passwordHash, u.role, u.subteam, u.mustChangePassword ? 1 : 0]
+          });
+        }
+        for (const p of APP_STATE.projects) {
+          stmts.push({
+            sql: `INSERT INTO projects (id, code, name) VALUES (?, ?, ?)`,
+            args: [p.id, p.code, p.name]
+          });
+        }
+        for (const fld of APP_STATE.folders) {
+          stmts.push({
+            sql: `INSERT INTO folders (id, project_id, path, name) VALUES (?, ?, ?, ?)`,
+            args: [fld.id, fld.projectId, fld.path, fld.name]
+          });
+        }
+        for (const f of APP_STATE.files) {
+          stmts.push({
+            sql: `INSERT INTO cad_files (id, project_id, part_number, file_name, directory_path, lifecycle, active_rev, locked_by, locked_by_email, is_cots, custom_dimensions_json, bom_json, pins_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            args: [
+              f.id, f.projectId, f.partNumber, f.fileName, f.directoryPath, f.lifecycle, f.activeRev,
+              f.lockedBy || null, f.lockedByEmail || null, f.isCots ? 1 : 0,
+              JSON.stringify(f.customDimensions || []), JSON.stringify(f.bom || []), JSON.stringify(f.pins || [])
+            ]
+          });
+          for (const r of (f.revisions || [])) {
+            stmts.push({
+              sql: `INSERT INTO revisions (id, file_id, rev, author, notes, mass_kg, bbox, timestamp, mesh_data, has_binary_mesh) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+              args: [
+                r.id, f.id, r.rev, r.author, r.notes, r.massKg || 0, r.bbox || '', r.timestamp || '',
+                r.meshData || null, r.hasBinaryMesh ? 1 : 0
+              ]
+            });
+          }
+        }
+        if (APP_STATE.cloudConfig.driveClientId) {
+          stmts.push({ sql: `INSERT OR REPLACE INTO app_config (key, value) VALUES ('driveClientId', ?)`, args: [APP_STATE.cloudConfig.driveClientId] });
+        }
+        if (APP_STATE.cloudConfig.driveFolderId) {
+          stmts.push({ sql: `INSERT OR REPLACE INTO app_config (key, value) VALUES ('driveFolderId', ?)`, args: [APP_STATE.cloudConfig.driveFolderId] });
+        }
+
+        await this.executeStatements(stmts);
         return true;
       },
+
       async pullIntoState() {
-        const baseUrl = this.normalizeHttpUrl(APP_STATE.cloudConfig.tursoUrl);
-        if (!baseUrl || !APP_STATE.cloudConfig.tursoToken) return false;
-        const data = await this.executePipeline([
-          `CREATE TABLE IF NOT EXISTS raven_state (id TEXT PRIMARY KEY, json_data TEXT, updated_at TEXT);`,
-          `SELECT json_data FROM raven_state WHERE id = 'global';`
+        if (!this.getEndpoint() || !APP_STATE.cloudConfig.tursoToken) return false;
+        await this.ensureTables();
+        const res = await this.executeStatements([
+          `SELECT id, name, email, password_hash, role, subteam, must_change_password FROM users`,
+          `SELECT id, code, name FROM projects`,
+          `SELECT id, project_id, path, name FROM folders`,
+          `SELECT id, project_id, part_number, file_name, directory_path, lifecycle, active_rev, locked_by, locked_by_email, is_cots, custom_dimensions_json, bom_json, pins_json FROM cad_files`,
+          `SELECT id, file_id, rev, author, notes, mass_kg, bbox, timestamp, mesh_data, has_binary_mesh FROM revisions ORDER BY rev ASC`,
+          `SELECT key, value FROM app_config`
         ]);
-        const rowVal = data?.results?.[1]?.response?.result?.rows?.[0]?.[0]?.value;
-        if (rowVal) {
-          const remote = JSON.parse(rowVal);
-          if (Array.isArray(remote.users) && remote.users.length) APP_STATE.users = remote.users;
-          if (Array.isArray(remote.projects) && remote.projects.length) APP_STATE.projects = remote.projects;
-          if (Array.isArray(remote.folders) && remote.folders.length) APP_STATE.folders = remote.folders;
-          if (Array.isArray(remote.files)) APP_STATE.files = remote.files;
-          if (remote.driveConfig) {
-            if (remote.driveConfig.driveClientId) APP_STATE.cloudConfig.driveClientId = remote.driveConfig.driveClientId;
-            if (remote.driveConfig.driveFolderId) APP_STATE.cloudConfig.driveFolderId = remote.driveConfig.driveFolderId;
-          }
-          LocalSqliteEngine.saveFromAppState();
-          return true;
+        if (!res || !Array.isArray(res.results)) return false;
+
+        const rowsOf = idx => {
+          const r = res.results[idx]?.response?.result;
+          if (!r || !r.rows) return [];
+          return r.rows.map(row => row.map(cell => (cell.type === 'null' ? null : cell.value)));
+        };
+
+        const userRows = rowsOf(0);
+        if (userRows.length === 0) return false;
+
+        APP_STATE.users = userRows.map(r => ({
+          id: r[0], name: r[1], email: r[2], passwordHash: r[3], role: r[4], subteam: r[5], mustChangePassword: Number(r[6]) === 1
+        }));
+        const projRows = rowsOf(1);
+        if (projRows.length > 0) {
+          APP_STATE.projects = projRows.map(r => ({ id: r[0], code: r[1], name: r[2] }));
         }
-        return false;
+        const fldRows = rowsOf(2);
+        if (fldRows.length > 0) {
+          APP_STATE.folders = fldRows.map(r => ({ id: r[0], projectId: r[1], path: r[2], name: r[3] }));
+        }
+        const revRows = rowsOf(4);
+        const revMap = {};
+        revRows.forEach(r => {
+          const fid = r[1];
+          revMap[fid] = revMap[fid] || [];
+          revMap[fid].push({
+            id: r[0], rev: Number(r[2]), author: r[3], notes: r[4], massKg: Number(r[5]),
+            bbox: r[6], timestamp: r[7], meshData: r[8], hasBinaryMesh: Number(r[9]) === 1
+          });
+        });
+
+        APP_STATE.files = rowsOf(3).map(r => ({
+          id: r[0],
+          projectId: r[1],
+          partNumber: r[2],
+          fileName: r[3],
+          directoryPath: r[4],
+          lifecycle: r[5],
+          activeRev: Number(r[6]),
+          lockedBy: r[7],
+          lockedByEmail: r[8],
+          isCots: Number(r[9]) === 1,
+          customDimensions: JSON.parse(r[10] || '[]'),
+          bom: JSON.parse(r[11] || '[]'),
+          pins: JSON.parse(r[12] || '[]'),
+          revisions: revMap[r[0]] || []
+        }));
+
+        rowsOf(5).forEach(([k, v]) => {
+          if (k === 'driveClientId' && v) APP_STATE.cloudConfig.driveClientId = v;
+          if (k === 'driveFolderId' && v) APP_STATE.cloudConfig.driveFolderId = v;
+        });
+
+        LocalSqliteEngine.saveFromAppState();
+        return true;
       }
     };
 
     // -------------------------------------------------------------------------
-    // GOOGLE DRIVE VAULT INTEGRATION (OAUTH 2.0 GIS + DRIVE API V3)
+    // GOOGLE DRIVE VAULT CLIENT (OAUTH2 + .REVISIONS/ ARCHIVE + MANIFEST)
     // -------------------------------------------------------------------------
     const GoogleDriveVault = {
-      accessToken: sessionStorage.getItem('raven_drive_token') || '',
-      extractFolderId(rawInput) {
-        const val = (rawInput || '').trim();
-        const match = val.match(/folders\/([a-zA-Z0-9_-]+)/);
-        if (match) return match[1];
-        const idParam = val.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-        if (idParam) return idParam[1];
-        return val;
+      accessToken: sessionStorage.getItem('raven_drive_access_token') || null,
+
+      extractFolderId(raw) {
+        const s = (raw || '').trim();
+        const match = s.match(/\/folders\/([a-zA-Z0-9_-]+)/);
+        return match ? match[1] : s;
       },
-      async waitForGis(timeoutMs = 5000) {
-        const start = Date.now();
-        while (Date.now() - start < timeoutMs) {
-          if (window.google?.accounts?.oauth2) return true;
+
+      async ensureAuthorized(forceConsent = false) {
+        if (!forceConsent && this.accessToken) return this.accessToken;
+        const clientId = (APP_STATE.cloudConfig.driveClientId || '').trim();
+        if (!clientId) throw new Error('Missing Google OAuth 2.0 Web Client ID.');
+
+        for (let i = 0; i < 20 && !window.google?.accounts?.oauth2; i++) {
           await new Promise(r => setTimeout(r, 150));
         }
-        return Boolean(window.google?.accounts?.oauth2);
-      },
-      async ensureAuthorized(forceConsent = false) {
-        const clientId = (APP_STATE.cloudConfig.driveClientId || '').trim();
-        if (!clientId) throw new Error('Missing Google OAuth Client ID.');
-        if (!forceConsent && this.accessToken) return this.accessToken;
+        if (!window.google?.accounts?.oauth2) {
+          throw new Error('Google Identity Services script did not load. Check network or ad-blocker.');
+        }
 
-        const gisReady = await this.waitForGis();
-        if (!gisReady) throw new Error('Google Identity Services script failed to load.');
-
-        return new Promise((resolve, reject) => {
-          const client = google.accounts.oauth2.initTokenClient({
+        return await new Promise((resolve, reject) => {
+          const client = window.google.accounts.oauth2.initTokenClient({
             client_id: clientId,
             scope: 'https://www.googleapis.com/auth/drive',
             callback: resp => {
               if (resp.error) {
-                this.accessToken = '';
-                sessionStorage.removeItem('raven_drive_token');
+                this.accessToken = null;
+                sessionStorage.removeItem('raven_drive_access_token');
                 reject(new Error(`Google OAuth error: ${resp.error}`));
                 return;
               }
               this.accessToken = resp.access_token;
-              sessionStorage.setItem('raven_drive_token', this.accessToken);
-              resolve(this.accessToken);
+              sessionStorage.setItem('raven_drive_access_token', resp.access_token);
+              resolve(resp.access_token);
             }
           });
           client.requestAccessToken({ prompt: forceConsent ? 'consent' : '' });
         });
       },
+
       async driveFetch(url, options = {}) {
         const token = await this.ensureAuthorized(false);
-        const headers = { ...(options.headers || {}), Authorization: `Bearer ${token}` };
+        const headers = new Headers(options.headers || {});
+        headers.set('Authorization', `Bearer ${token}`);
         const res = await fetch(url, { ...options, headers });
-        if (!res.ok) {
-          let detail = `HTTP ${res.status}`;
+        if (res.status === 401 || res.status === 403) {
+          this.accessToken = null;
+          sessionStorage.removeItem('raven_drive_access_token');
+          let reason = `HTTP ${res.status}`;
           try {
             const errJson = await res.json();
-            const reason = errJson?.error?.errors?.[0]?.reason || '';
-            const msg = errJson?.error?.message || '';
-            detail = `${res.status} (${reason}): ${msg}`;
+            reason = errJson?.error?.message || errJson?.error?.errors?.[0]?.reason || reason;
           } catch (_) {}
-          if (res.status === 401 || res.status === 403) {
-            this.accessToken = '';
-            sessionStorage.removeItem('raven_drive_token');
-          }
-          throw new Error(detail);
+          throw new Error(`Drive API (${res.status}): ${reason}`);
         }
         return res;
       },
+
       async verifyRootFolder() {
         const folderId = this.extractFolderId(APP_STATE.cloudConfig.driveFolderId);
-        if (!folderId) throw new Error('Missing Google Drive Folder ID.');
+        if (!folderId) throw new Error('Target Drive Folder ID is required.');
         const res = await this.driveFetch(
           `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(folderId)}?fields=id,name,mimeType&supportsAllDrives=true`
         );
-        return res.json();
+        if (!res.ok) throw new Error(`Folder lookup failed (HTTP ${res.status}). Check Folder ID & Editor sharing.`);
+        return await res.json();
       },
-      async uploadFileBuffer(fileName, arrayBuffer, mimeType = 'application/octet-stream') {
-        const folderId = this.extractFolderId(APP_STATE.cloudConfig.driveFolderId);
-        if (!folderId || !APP_STATE.cloudConfig.driveClientId || !arrayBuffer) return null;
 
-        const metadata = { name: fileName, parents: [folderId] };
-        const boundary = '-------raven1310boundary';
-        const metaPart = `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(metadata)}\r\n`;
-        const fileHeader = `--${boundary}\r\nContent-Type: ${mimeType}\r\n\r\n`;
-        const endPart = `\r\n--${boundary}--`;
-
-        const bodyBlob = new Blob([metaPart, fileHeader, arrayBuffer, endPart], {
-          type: `multipart/related; boundary=${boundary}`
-        });
-
-        const res = await this.driveFetch(
-          'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name&supportsAllDrives=true',
-          { method: 'POST', body: bodyBlob }
+      async findOrCreateSubfolder(parentId, folderName) {
+        const q = `'${parentId}' in parents and name = '${folderName.replace(/'/g, "\\'")}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false`;
+        const searchRes = await this.driveFetch(
+          `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id,name)&supportsAllDrives=true&includeItemsFromAllDrives=true`
         );
-        return res.json();
+        const searchData = await searchRes.json();
+        if (searchData.files && searchData.files.length > 0) return searchData.files[0].id;
+
+        const createRes = await this.driveFetch(
+          `https://www.googleapis.com/drive/v3/files?supportsAllDrives=true`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              name: folderName,
+              mimeType: 'application/vnd.google-apps.folder',
+              parents: [parentId]
+            })
+          }
+        );
+        const created = await createRes.json();
+        return created.id;
+      },
+
+      async resolveDirectoryPathId(projectCode, directoryPath) {
+        let currentId = this.extractFolderId(APP_STATE.cloudConfig.driveFolderId);
+        currentId = await this.findOrCreateSubfolder(currentId, projectCode || 'FRC-2026');
+        const segments = (directoryPath || '/').split('/').filter(Boolean);
+        for (const seg of segments) {
+          currentId = await this.findOrCreateSubfolder(currentId, seg);
+        }
+        return currentId;
+      },
+
+      async uploadMultipartFile(parentId, fileName, blob, existingFileId = null) {
+        const boundary = 'raven_boundary_' + Date.now();
+        const metadata = existingFileId ? { name: fileName } : { name: fileName, parents: [parentId] };
+        const metaPart = `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(metadata)}\r\n`;
+        const mediaHeader = `--${boundary}\r\nContent-Type: ${blob.type || 'application/octet-stream'}\r\n\r\n`;
+        const closeDelim = `\r\n--${boundary}--`;
+        const bodyBlob = new Blob([metaPart, mediaHeader, blob, closeDelim]);
+
+        const url = existingFileId
+          ? `https://www.googleapis.com/upload/drive/v3/files/${existingFileId}?uploadType=multipart&supportsAllDrives=true`
+          : `https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&supportsAllDrives=true`;
+
+        const res = await this.driveFetch(url, {
+          method: existingFileId ? 'PATCH' : 'POST',
+          headers: { 'Content-Type': `multipart/related; boundary=${boundary}` },
+          body: bodyBlob
+        });
+        return await res.json();
+      },
+
+      async uploadFileToVault(projectCode, directoryPath, fileName, arrayBuffer, archivePrevRev = null) {
+        const dirId = await this.resolveDirectoryPathId(projectCode, directoryPath);
+        const q = `'${dirId}' in parents and name = '${fileName.replace(/'/g, "\\'")}' and trashed = false`;
+        const searchRes = await this.driveFetch(
+          `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id,name)&supportsAllDrives=true&includeItemsFromAllDrives=true`
+        );
+        const existing = (await searchRes.json()).files?.[0];
+
+        if (existing && archivePrevRev !== null) {
+          const revFolderId = await this.findOrCreateSubfolder(dirId, '.revisions');
+          const dotIdx = fileName.lastIndexOf('.');
+          const archivedName = dotIdx > 0
+            ? `${fileName.slice(0, dotIdx)}_v${archivePrevRev}${fileName.slice(dotIdx)}`
+            : `${fileName}_v${archivePrevRev}`;
+          await this.driveFetch(
+            `https://www.googleapis.com/drive/v3/files/${existing.id}?addParents=${revFolderId}&removeParents=${dirId}&supportsAllDrives=true`,
+            {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ name: archivedName })
+            }
+          );
+        }
+
+        await this.uploadMultipartFile(dirId, fileName, new Blob([arrayBuffer]));
+        await this.syncManifestJson();
+      },
+
+      async downloadFileFromVault(projectCode, directoryPath, fileName, revNum, activeRev) {
+        const dirId = await this.resolveDirectoryPathId(projectCode, directoryPath);
+        let targetParent = dirId;
+        let targetName = fileName;
+        if (revNum !== activeRev) {
+          targetParent = await this.findOrCreateSubfolder(dirId, '.revisions');
+          const dotIdx = fileName.lastIndexOf('.');
+          targetName = dotIdx > 0
+            ? `${fileName.slice(0, dotIdx)}_v${revNum}${fileName.slice(dotIdx)}`
+            : `${fileName}_v${revNum}`;
+        }
+        const q = `'${targetParent}' in parents and name = '${targetName.replace(/'/g, "\\'")}' and trashed = false`;
+        const searchRes = await this.driveFetch(
+          `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id)&supportsAllDrives=true&includeItemsFromAllDrives=true`
+        );
+        const hit = (await searchRes.json()).files?.[0];
+        if (!hit) return null;
+
+        const dlRes = await this.driveFetch(
+          `https://www.googleapis.com/drive/v3/files/${hit.id}?alt=media&supportsAllDrives=true`
+        );
+        return await dlRes.arrayBuffer();
+      },
+
+      async syncManifestJson() {
+        const rootId = this.extractFolderId(APP_STATE.cloudConfig.driveFolderId);
+        if (!rootId) return;
+        const manifestName = '_raven_workbench_manifest.json';
+        const q = `'${rootId}' in parents and name = '${manifestName}' and trashed = false`;
+        const searchRes = await this.driveFetch(
+          `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id)&supportsAllDrives=true&includeItemsFromAllDrives=true`
+        );
+        const existingId = (await searchRes.json()).files?.[0]?.id || null;
+        const manifestPayload = JSON.stringify({
+          team: 'FRC 1310 Runnymede Robotics',
+          updatedAt: new Date().toISOString(),
+          projects: APP_STATE.projects,
+          files: APP_STATE.files.map(f => ({
+            id: f.id,
+            partNumber: f.partNumber,
+            fileName: f.fileName,
+            directoryPath: f.directoryPath,
+            activeRev: f.activeRev,
+            lifecycle: f.lifecycle,
+            isCots: Boolean(f.isCots)
+          }))
+        }, null, 2);
+        await this.uploadMultipartFile(
+          rootId,
+          manifestName,
+          new Blob([manifestPayload], { type: 'application/json' }),
+          existingId
+        );
       }
     };
 
@@ -1076,11 +1366,6 @@
       document.getElementById('tabSignUpBtn').className = !isSignIn
         ? 'py-2 text-xs font-semibold rounded-lg bg-raven-red text-white transition'
         : 'py-2 text-xs font-semibold rounded-lg text-zinc-400 hover:text-white transition';
-    }
-
-    function fillDemoCredentials() {
-      document.getElementById('signInEmail').value = 'ryan@frc1310.ca';
-      document.getElementById('signInPassword').value = 'Raven1310!';
     }
 
     function handleSignInSubmit(e) {
@@ -1217,7 +1502,7 @@
         obj3d.traverse(child => {
           if (!child.isMesh || !child.geometry || !child.geometry.attributes?.position) return;
           const pos = child.geometry.attributes.position;
-          const step = Math.max(1, Math.floor(pos.count / 360));
+          const step = Math.max(1, Math.floor(pos.count / 420));
           for (let i = 0; i < pos.count; i += step) {
             const nx = size.x > 0 ? (pos.getX(i) - box.min.x) / size.x : 0.5;
             const ny = size.y > 0 ? (pos.getY(i) - box.min.y) / size.y : 0.5;
@@ -1232,7 +1517,7 @@
         return {
           bbox: `${wMm} x ${hMm} x ${dMm} mm`,
           massKg: estMassKg,
-          silhouetteJson: JSON.stringify({ wMm, hMm, dMm, pts: pts2d.slice(0, 360) })
+          silhouetteJson: JSON.stringify({ wMm, hMm, dMm, pts: pts2d.slice(0, 420) })
         };
       } catch (err) {
         console.warn('CAD metric extraction warning:', err);
@@ -1289,7 +1574,18 @@
       const wIn = (wMm / 25.4).toFixed(3);
       const hIn = (hMm / 25.4).toFixed(3);
       const dIn = (dMm / 25.4).toFixed(3);
+      const pocketWIn = ((wMm * 0.5) / 25.4).toFixed(3);
+      const pocketHIn = ((hMm * 0.5) / 25.4).toFixed(3);
       const material = file.bom?.[0]?.material || '6061-T6 Aluminum';
+
+      const baseDims = [
+        { id: 'D1', label: 'Overall Width', value: `${wIn}" (${wMm} mm)` },
+        { id: 'D2', label: 'Overall Height', value: `${hIn}" (${hMm} mm)` },
+        { id: 'D3', label: 'Stock Thickness', value: `${dIn}" (${dMm} mm)` },
+        { id: 'D4', label: 'Interior Pocket Span', value: `${pocketWIn}" × ${pocketHIn}"` },
+        { id: 'D5', label: 'Mounting Pattern', value: '4× Ø0.196" (#10-32 Clear)' }
+      ];
+      const extraDims = Array.isArray(file.customDimensions) ? file.customDimensions : [];
 
       return {
         sheetSize: 'ANSI-A (8.5" x 11")',
@@ -1299,15 +1595,30 @@
         wMm,
         hMm,
         dMm,
+        pocketWIn,
+        pocketHIn,
         material,
         massKg: latestRev.massKg || 0.25,
-        dimensions: [
-          { id: 'D1', label: 'Overall Width', value: `${wIn}" (${wMm} mm)` },
-          { id: 'D2', label: 'Overall Height', value: `${hIn}" (${hMm} mm)` },
-          { id: 'D3', label: 'Stock Thickness', value: `${dIn}" (${dMm} mm)` },
-          { id: 'D4', label: 'Mounting Pattern', value: '4x Ø0.196" (#10-32 Clear)' }
-        ]
+        dimensions: [...baseDims, ...extraDims]
       };
+    }
+
+    function promptAddCustomDimension() {
+      const f = APP_STATE.files.find(item => item.id === APP_STATE.selectedProductionFileId);
+      if (!f) return;
+      const label = prompt('Dimension label (e.g., Center Bore Diameter):');
+      if (!label) return;
+      const value = prompt('Dimension value (e.g., Ø1.125" ±0.002"):');
+      if (!value) return;
+      f.customDimensions = f.customDimensions || [];
+      f.customDimensions.push({
+        id: `D${6 + f.customDimensions.length}`,
+        label: label.trim(),
+        value: value.trim()
+      });
+      LocalSqliteEngine.saveFromAppState();
+      TursoCloudSQL.pushAllFromState().catch(() => {});
+      renderSelectedProductionDrawing();
     }
 
     function renderProductionQueue() {
@@ -1352,15 +1663,18 @@
       const f = APP_STATE.files.find(item => item.id === APP_STATE.selectedProductionFileId && item.lifecycle === 'Released' && !item.isCots);
       const host = document.getElementById('productionDrawingPreviewHost');
       const dlBtn = document.getElementById('downloadProdPdfBtn');
+      const addDimBtn = document.getElementById('addCustomDimBtn');
 
       if (!f) {
         dlBtn.disabled = true;
+        addDimBtn.disabled = true;
         document.getElementById('prodSheetHeading').textContent = 'Select a Released Part';
         host.innerHTML = `<div class="py-16 text-center text-sm text-slate-500">No custom released parts selected. Release a non-COTS part in the Designs tab to generate its shop drawing.</div>`;
         return;
       }
 
       dlBtn.disabled = false;
+      addDimBtn.disabled = false;
       const dwg = generateAutoDrawingRecord(f);
       document.getElementById('prodSheetHeading').textContent = `${f.partNumber} — ${f.fileName} (Rev v${f.activeRev})`;
 
@@ -1377,14 +1691,14 @@
             </div>
           </div>
 
-          <!-- Orthographic Projection SVG -->
+          <!-- Orthographic Projection SVG with Outer & Interior Feature Dimensions -->
           <div class="bg-slate-50 border border-slate-300 rounded-lg p-2">
-            <svg viewBox="0 0 360 220" class="w-full h-auto">
+            <svg viewBox="0 0 360 225" class="w-full h-auto">
               <!-- Overall Width Dimension -->
-              <line x1="70" y1="24" x2="270" y2="24" stroke="#dc2626" stroke-width="1.2" />
-              <line x1="70" y1="18" x2="70" y2="42" stroke="#dc2626" stroke-width="1" />
-              <line x1="270" y1="18" x2="270" y2="42" stroke="#dc2626" stroke-width="1" />
-              <text x="170" y="19" text-anchor="middle" fill="#dc2626" font-size="9.5" font-family="monospace" font-weight="bold">${dwg.wIn}" (${dwg.wMm} mm)</text>
+              <line x1="70" y1="22" x2="270" y2="22" stroke="#dc2626" stroke-width="1.2" />
+              <line x1="70" y1="16" x2="70" y2="42" stroke="#dc2626" stroke-width="1" />
+              <line x1="270" y1="16" x2="270" y2="42" stroke="#dc2626" stroke-width="1" />
+              <text x="170" y="17" text-anchor="middle" fill="#dc2626" font-size="9.5" font-family="monospace" font-weight="bold">${dwg.wIn}" (${dwg.wMm} mm)</text>
 
               <!-- Overall Height Dimension -->
               <line x1="305" y1="45" x2="305" y2="175" stroke="#dc2626" stroke-width="1.2" />
@@ -1395,20 +1709,24 @@
               <!-- Real Uploaded Model Silhouette or Parametric Profile -->
               ${buildModelSilhouetteSvgMarkup(f, 70, 45, 200, 130)}
 
+              <!-- Interior Feature Dimension Callout -->
+              <line x1="120" y1="110" x2="220" y2="110" stroke="#0284c7" stroke-width="1" stroke-dasharray="2 2" />
+              <text x="170" y="106" text-anchor="middle" fill="#0284c7" font-size="8" font-family="monospace" font-weight="bold">INT: ${dwg.pocketWIn}" × ${dwg.pocketHIn}"</text>
+
               <!-- Corner Hole Callout -->
               <circle cx="84" cy="59" r="3.5" fill="#ffffff" stroke="#0f172a" stroke-width="1.2" />
               <circle cx="256" cy="59" r="3.5" fill="#ffffff" stroke="#0f172a" stroke-width="1.2" />
               <circle cx="84" cy="161" r="3.5" fill="#ffffff" stroke="#0f172a" stroke-width="1.2" />
               <circle cx="256" cy="161" r="3.5" fill="#ffffff" stroke="#0f172a" stroke-width="1.2" />
-              <text x="170" y="196" text-anchor="middle" fill="#0f172a" font-size="8.5" font-family="monospace">THICKNESS: ${dwg.dIn}" (${dwg.dMm} mm) • MASS: ${dwg.massKg} kg</text>
+              <text x="170" y="198" text-anchor="middle" fill="#0f172a" font-size="8.5" font-family="monospace">THICKNESS: ${dwg.dIn}" (${dwg.dMm} mm) • MASS: ${dwg.massKg} kg</text>
             </svg>
           </div>
 
           <!-- Dimension Schedule -->
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-3 text-xs">
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-3 text-xs">
             ${dwg.dimensions.map(d => `
               <div class="p-2 border border-slate-300 rounded bg-slate-50">
-                <div class="text-[10px] font-mono text-slate-500">${d.id} • ${escapeHtml(d.label)}</div>
+                <div class="text-[10px] font-mono text-slate-500">${escapeHtml(d.id)} • ${escapeHtml(d.label)}</div>
                 <div class="font-mono font-bold text-slate-900 mt-0.5">${escapeHtml(d.value)}</div>
               </div>
             `).join('')}
@@ -1427,41 +1745,51 @@
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF({ orientation: 'landscape', unit: 'in', format: 'letter' });
 
-      // Border & Title Block (11" x 8.5")
       doc.setLineWidth(0.02);
       doc.rect(0.4, 0.4, 10.2, 7.7);
-      doc.rect(0.4, 6.9, 10.2, 1.2);
+      doc.rect(0.4, 6.85, 10.2, 1.25);
 
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(14);
-      doc.text(`FRC 1310 RUNNYMEDE ROBOTICS — ${f.partNumber}`, 0.6, 7.3);
+      doc.text(`FRC 1310 RUNNYMEDE ROBOTICS — ${f.partNumber}`, 0.6, 7.25);
       doc.setFontSize(10);
       doc.setFont('helvetica', 'normal');
-      doc.text(`FILE: ${f.fileName}   |   REV: v${f.activeRev}   |   MATERIAL: ${dwg.material}   |   MASS: ${dwg.massKg} kg`, 0.6, 7.65);
-      doc.text(`OVERALL BBOX: ${dwg.wIn}" x ${dwg.hIn}" x ${dwg.dIn}" (${dwg.wMm} x ${dwg.hMm} x ${dwg.dMm} mm)`, 0.6, 7.95);
+      doc.text(`FILE: ${f.fileName}   |   REV: v${f.activeRev}   |   MATERIAL: ${dwg.material}   |   MASS: ${dwg.massKg} kg`, 0.6, 7.6);
+      doc.text(`OVERALL BBOX: ${dwg.wIn}" x ${dwg.hIn}" x ${dwg.dIn}" (${dwg.wMm} x ${dwg.hMm} x ${dwg.dMm} mm)`, 0.6, 7.9);
 
-      // Part Outline & Dimension Lines
-      const px = 2.8, py = 1.6, pw = 5.2, ph = 3.6;
+      // Part Outline & Interior Pocket
+      const px = 1.6, py = 1.4, pw = 4.6, ph = 3.4;
       doc.setDrawColor(15, 23, 42);
       doc.setLineWidth(0.025);
       doc.rect(px, py, pw, ph);
+      doc.setLineWidth(0.015);
+      doc.rect(px + pw * 0.25, py + ph * 0.25, pw * 0.5, ph * 0.5);
 
-      // Dimension callouts
+      // Outer Dimension Callouts
       doc.setDrawColor(220, 38, 38);
       doc.setTextColor(220, 38, 38);
-      doc.setLineWidth(0.015);
-      doc.line(px, py - 0.35, px + pw, py - 0.35);
-      doc.text(`${dwg.wIn}" (${dwg.wMm} mm)`, px + pw / 2, py - 0.45, { align: 'center' });
+      doc.line(px, py - 0.3, px + pw, py - 0.3);
+      doc.text(`${dwg.wIn}" (${dwg.wMm} mm)`, px + pw / 2, py - 0.4, { align: 'center' });
 
-      doc.line(px + pw + 0.35, py, px + pw + 0.35, py + ph);
-      doc.text(`${dwg.hIn}" (${dwg.hMm} mm)`, px + pw + 0.5, py + ph / 2);
+      doc.line(px + pw + 0.3, py, px + pw + 0.3, py + ph);
+      doc.text(`${dwg.hIn}"`, px + pw + 0.42, py + ph / 2);
+
+      // Dimension Schedule Table on Right Side of Sheet
+      doc.setTextColor(15, 23, 42);
+      doc.setFont('helvetica', 'bold');
+      doc.text('DIMENSION SCHEDULE', 7.2, 1.4);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      dwg.dimensions.forEach((d, i) => {
+        doc.text(`${d.id} (${d.label}): ${d.value}`, 7.2, 1.75 + i * 0.32);
+      });
 
       doc.save(`${f.partNumber}_v${f.activeRev}_Drawing.pdf`);
       showToast(`Downloaded ${f.partNumber}_v${f.activeRev}_Drawing.pdf`, 'success');
     }
 
     // -------------------------------------------------------------------------
-    // EXPLORER, FOLDERS, COTS TAGGING & FILE OPERATIONS
+    // EXPLORER, HIERARCHICAL FOLDERS, COTS TAGGING & FILE OPERATIONS
     // -------------------------------------------------------------------------
     function updateProductionCountBadge() {
       const count = APP_STATE.files.filter(f => f.lifecycle === 'Released' && !f.isCots).length;
@@ -1497,25 +1825,39 @@
     }
 
     function openNewProjectModal() {
-      const code = prompt('Enter new project code (e.g., FRC-2027):');
+      openModal('newProjectModal');
+    }
+
+    function handleCreateNewProject(e) {
+      e.preventDefault();
+      const code = document.getElementById('newProjCodeInput').value.trim();
+      const name = document.getElementById('newProjNameInput').value.trim();
       if (!code) return;
-      const name = prompt('Enter project name:') || code;
       const id = 'proj-' + Date.now();
-      APP_STATE.projects.push({ id, code: code.trim(), name: name.trim() });
-      APP_STATE.folders.push({ id: 'fld-' + Date.now(), projectId: id, path: '/', name: `${code.trim()} Root` });
+      APP_STATE.projects.push({ id, code, name: name || code });
+      APP_STATE.folders.push({ id: 'fld-' + Date.now(), projectId: id, path: '/', name: `${code} Root` });
       APP_STATE.activeProjectId = id;
       APP_STATE.activeFolderPath = '/';
       LocalSqliteEngine.saveFromAppState();
       TursoCloudSQL.pushAllFromState().catch(() => {});
+      closeModal('newProjectModal');
+      e.target.reset();
       renderProjectSelector();
       renderFolderTree();
       renderFileExplorer();
+      showToast(`Created project ${code}`, 'success');
     }
 
     function openNewFolderModal() {
-      const name = prompt('New subsystem folder name (e.g., Shooter):');
-      if (!name) return;
-      const clean = name.trim().replace(/^\/+|\/+$/g, '');
+      document.getElementById('newFolderParentLabel').textContent = APP_STATE.activeFolderPath;
+      openModal('newFolderModal');
+    }
+
+    function handleCreateNewFolder(e) {
+      e.preventDefault();
+      const rawName = document.getElementById('newFolderNameInput').value.trim();
+      if (!rawName) return;
+      const clean = rawName.replace(/^\/+|\/+$/g, '');
       const path = APP_STATE.activeFolderPath === '/' ? `/${clean}` : `${APP_STATE.activeFolderPath}/${clean}`;
       APP_STATE.folders.push({
         id: 'fld-' + Date.now(),
@@ -1525,21 +1867,28 @@
       });
       LocalSqliteEngine.saveFromAppState();
       TursoCloudSQL.pushAllFromState().catch(() => {});
+      closeModal('newFolderModal');
+      e.target.reset();
       renderFolderTree();
+      showToast(`Created folder ${path}`, 'success');
     }
 
     function renderFolderTree() {
       const host = document.getElementById('folderTreeContainer');
-      const folders = APP_STATE.folders.filter(f => f.projectId === APP_STATE.activeProjectId);
+      const folders = APP_STATE.folders
+        .filter(f => f.projectId === APP_STATE.activeProjectId)
+        .sort((a, b) => a.path.localeCompare(b.path));
       if (folders.length === 0) {
         folders.push({ id: 'fld-default', projectId: APP_STATE.activeProjectId, path: '/', name: 'Project Root' });
       }
       host.innerHTML = folders.map(f => {
         const active = f.path === APP_STATE.activeFolderPath;
+        const depth = f.path === '/' ? 0 : f.path.split('/').filter(Boolean).length;
+        const padLeft = 10 + depth * 12;
         return `
-          <button type="button" onclick="selectFolderPath('${escapeHtml(f.path)}')" class="w-full text-left px-3 py-2 rounded-xl text-xs font-medium flex items-center justify-between transition ${active ? 'bg-raven-red/15 text-white border border-raven-red/40' : 'text-zinc-400 hover:text-white hover:bg-zinc-900'}">
-            <span class="truncate">📁 ${escapeHtml(f.name)}</span>
-            <span class="font-mono text-[10px] text-zinc-500">${escapeHtml(f.path)}</span>
+          <button type="button" onclick="selectFolderPath('${escapeHtml(f.path)}')" style="padding-left:${padLeft}px" class="w-full text-left pr-3 py-2 rounded-xl text-xs font-medium flex items-center justify-between transition ${active ? 'bg-raven-red/15 text-white border border-raven-red/40' : 'text-zinc-400 hover:text-white hover:bg-zinc-900'}">
+            <span class="truncate">${depth > 0 ? '↳ ' : '📁 '}${escapeHtml(f.name)}</span>
+            <span class="font-mono text-[10px] text-zinc-500 ml-1">${escapeHtml(f.path)}</span>
           </button>
         `;
       }).join('');
@@ -1747,6 +2096,7 @@
         lockedBy: null,
         lockedByEmail: null,
         isCots,
+        customDimensions: [],
         bom: [{ partNo: partNumber, desc: fileName, qty, material }],
         pins: [],
         revisions: [
@@ -1769,7 +2119,7 @@
       TursoCloudSQL.pushAllFromState().catch(() => {});
 
       if (arrayBuf && APP_STATE.cloudConfig.driveClientId && APP_STATE.cloudConfig.driveFolderId) {
-        GoogleDriveVault.uploadFileBuffer(fileName, arrayBuf)
+        GoogleDriveVault.uploadFileToVault(proj.code, newFile.directoryPath, fileName, arrayBuf, null)
           .then(() => showToast(`Synced ${fileName} to Google Drive`, 'success'))
           .catch(err => showToast(`Drive upload warning: ${err.message}`, 'warn'));
       }
@@ -1792,7 +2142,8 @@
       const f = APP_STATE.files.find(item => item.id === APP_STATE.selectedFileId);
       if (!f) return;
 
-      const nextRev = f.activeRev + 1;
+      const prevRev = f.activeRev;
+      const nextRev = prevRev + 1;
       const notes = document.getElementById('checkInNotesInput').value.trim();
       const lifecycle = document.getElementById('checkInLifecycleSelect').value;
       const releaseLock = document.getElementById('checkInReleaseLock').checked;
@@ -1818,7 +2169,7 @@
         await LocalMeshVault.putBinary(`${f.id}-v${nextRev}`, arrayBuf);
       }
 
-      const prevRevRec = f.revisions.find(r => r.rev === f.activeRev);
+      const prevRevRec = f.revisions.find(r => r.rev === prevRev);
       f.activeRev = nextRev;
       f.lifecycle = lifecycle;
       if (releaseLock) {
@@ -1841,8 +2192,11 @@
       LocalSqliteEngine.saveFromAppState();
       TursoCloudSQL.pushAllFromState().catch(() => {});
 
+      const proj = APP_STATE.projects.find(p => p.id === f.projectId);
       if (arrayBuf && APP_STATE.cloudConfig.driveClientId && APP_STATE.cloudConfig.driveFolderId) {
-        GoogleDriveVault.uploadFileBuffer(f.fileName, arrayBuf).catch(() => {});
+        GoogleDriveVault.uploadFileToVault(proj?.code || 'FRC-2026', f.directoryPath, f.fileName, arrayBuf, prevRev)
+          .then(() => showToast(`Archived v${prevRev} to .revisions/ & uploaded v${nextRev}`, 'success'))
+          .catch(() => {});
       }
 
       closeModal('checkInModal');
@@ -1918,7 +2272,10 @@
           <p class="text-zinc-300 text-[11px]">${escapeHtml(r.notes)}</p>
           <div class="flex items-center justify-between pt-1 text-[10px] font-mono text-zinc-400">
             <span>${r.massKg} kg</span>
-            ${r.rev !== f.activeRev ? `<button type="button" onclick="enterDiffMode(${r.rev})" class="text-amber-400 hover:underline">3D Diff</button>` : '<span class="text-emerald-400">Active</span>'}
+            <div class="flex items-center gap-2">
+              <button type="button" onclick="downloadRevisionBinary(${r.rev})" class="text-zinc-300 hover:text-white">↓ v${r.rev}</button>
+              ${r.rev !== f.activeRev ? `<button type="button" onclick="enterDiffMode(${r.rev})" class="text-amber-400 hover:underline">3D Diff</button>` : '<span class="text-emerald-400">Active</span>'}
+            </div>
           </div>
         </div>
       `).join('');
@@ -1942,6 +2299,20 @@
           <p class="text-zinc-300">${escapeHtml(p.text)}</p>
         </div>
       `).join('') || '<p class="text-xs text-zinc-500">No review notes yet.</p>';
+    }
+
+    function openAddBomItemPrompt() {
+      const f = APP_STATE.files.find(item => item.id === APP_STATE.selectedFileId);
+      if (!f) return;
+      const partNo = prompt('BOM Part Number (e.g., WCP-0421):');
+      if (!partNo) return;
+      const material = prompt('Material / Description (e.g., 1/2in Hex Bearing):') || 'Hardware';
+      const qty = parseInt(prompt('Quantity:', '2'), 10) || 1;
+      f.bom = f.bom || [];
+      f.bom.push({ partNo: partNo.trim(), desc: material.trim(), qty, material: material.trim() });
+      LocalSqliteEngine.saveFromAppState();
+      TursoCloudSQL.pushAllFromState().catch(() => {});
+      renderWorkspaceSidebar();
     }
 
     function toggleSelectedFileLock() {
@@ -1988,21 +2359,31 @@
       renderWorkspaceSidebar();
     }
 
-    async function downloadActiveCadBinary() {
+    async function downloadRevisionBinary(revNum) {
       const f = APP_STATE.files.find(item => item.id === APP_STATE.selectedFileId);
       if (!f) return;
-      const buf = await resolveBinaryMeshForRevision(f, f.activeRev);
+      const buf = await resolveBinaryMeshForRevision(f, revNum);
       if (!buf) {
-        showToast('No local binary file attached to this seed part.', 'warn');
+        showToast(`No binary CAD file found for v${revNum}.`, 'warn');
         return;
       }
+      const dotIdx = f.fileName.lastIndexOf('.');
+      const dlName = revNum === f.activeRev
+        ? f.fileName
+        : (dotIdx > 0 ? `${f.fileName.slice(0, dotIdx)}_v${revNum}${f.fileName.slice(dotIdx)}` : `${f.fileName}_v${revNum}`);
+
       const blob = new Blob([buf], { type: 'application/octet-stream' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = f.fileName;
+      a.download = dlName;
       a.click();
       URL.revokeObjectURL(url);
+    }
+
+    async function downloadActiveCadBinary() {
+      const f = APP_STATE.files.find(item => item.id === APP_STATE.selectedFileId);
+      if (f) await downloadRevisionBinary(f.activeRev);
     }
 
     // -------------------------------------------------------------------------
@@ -2016,7 +2397,6 @@
       if (!window.THREE) return;
       if (window.__THREE_ADDONS_READY) await window.__THREE_ADDONS_READY;
 
-      // Main Viewport
       const mainCanvas = document.getElementById('mainThreeCanvas');
       if (mainCanvas && !mainRenderer) {
         mainScene = new THREE.Scene();
@@ -2043,7 +2423,6 @@
         resizeMainThreeCanvas();
       }
 
-      // Mini Quick Preview Viewport
       const miniCanvas = document.getElementById('miniThreeCanvas');
       if (miniCanvas && !miniRenderer) {
         miniScene = new THREE.Scene();
@@ -2075,6 +2454,15 @@
       animate();
     }
 
+    function resetViewportCamera() {
+      if (!mainCamera) return;
+      mainCamera.position.set(2.8, 2.2, 3.2);
+      if (mainControls) {
+        mainControls.target.set(0, 0, 0);
+        mainControls.update();
+      }
+    }
+
     function resizeMainThreeCanvas() {
       const host = document.getElementById('mainCanvasContainer');
       if (!host || !mainRenderer || !mainCamera) return;
@@ -2097,7 +2485,15 @@
 
     async function resolveBinaryMeshForRevision(file, revNum) {
       if (!file) return null;
-      return LocalMeshVault.getBinary(`${file.id}-v${revNum}`);
+      let buf = await LocalMeshVault.getBinary(`${file.id}-v${revNum}`);
+      if (!buf && APP_STATE.cloudConfig.driveClientId && APP_STATE.cloudConfig.driveFolderId && GoogleDriveVault.accessToken) {
+        try {
+          const proj = APP_STATE.projects.find(p => p.id === file.projectId);
+          buf = await GoogleDriveVault.downloadFileFromVault(proj?.code || 'FRC-2026', file.directoryPath, file.fileName, revNum, file.activeRev);
+          if (buf) await LocalMeshVault.putBinary(`${file.id}-v${revNum}`, buf);
+        } catch (_) {}
+      }
+      return buf;
     }
 
     async function buildParametricCadGroup(file, revNum = 1, isGhost = false, binaryBuffer = null) {
@@ -2115,7 +2511,7 @@
       const lowerFileName = (file?.fileName || '').toLowerCase();
       const revObj = (file?.revisions || []).find(r => r.rev === revNum) || (file?.revisions || [])[file.revisions.length - 1];
 
-      // 1. Real Binary or ASCII .STL / .OBJ from IndexedDB ArrayBuffer
+      // 1. Real Binary or ASCII .STL / .OBJ from IndexedDB or Google Drive
       if (binaryBuffer && binaryBuffer.byteLength > 0) {
         try {
           let loadedObj = null;
@@ -2188,7 +2584,7 @@
         } catch (_) {}
       }
 
-      // 3. Fallback Billet Plate + Bearing Boss Geometry scaled to BBox
+      // 3. Fallback Billet Plate Geometry scaled to BBox
       const { wMm, hMm, dMm } = parseBboxMillimeters(revObj?.bbox);
       const maxDim = Math.max(wMm, hMm, dMm) || 150;
       const baseMesh = new THREE.Mesh(
@@ -2271,8 +2667,35 @@
     }
 
     // -------------------------------------------------------------------------
-    // PROFILE, TURSO SQL & GOOGLE DRIVE SETTINGS MODAL
+    // PROFILE, TURSO SQL, GOOGLE DRIVE & TEAM ROSTER MODAL
     // -------------------------------------------------------------------------
+    function renderTeamRosterInModal() {
+      const host = document.getElementById('teamRosterList');
+      const isMentor = APP_STATE.currentUser?.role === 'Mentor';
+      document.getElementById('mentorRosterSection').classList.toggle('hidden', !isMentor);
+      if (!isMentor) return;
+
+      host.innerHTML = APP_STATE.users.map(u => `
+        <div class="p-2 rounded-lg bg-zinc-950 border border-raven-border flex items-center justify-between gap-2">
+          <div>
+            <div class="font-semibold text-white">${escapeHtml(u.name)} <span class="text-[10px] font-mono text-zinc-400">(${escapeHtml(u.role)})</span></div>
+            <div class="text-[11px] text-zinc-400">${escapeHtml(u.email)} • ${escapeHtml(u.subteam)}</div>
+          </div>
+          ${u.id !== APP_STATE.currentUser.id ? `<button type="button" onclick="resetTeamMemberPassword('${u.id}')" class="px-2 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-[11px] text-amber-300">Reset PW</button>` : '<span class="text-[10px] text-emerald-400">You</span>'}
+        </div>
+      `).join('');
+    }
+
+    function resetTeamMemberPassword(userId) {
+      const u = APP_STATE.users.find(item => item.id === userId);
+      if (!u) return;
+      u.passwordHash = 'Raven1310!';
+      u.mustChangePassword = true;
+      LocalSqliteEngine.saveFromAppState();
+      TursoCloudSQL.pushAllFromState().catch(() => {});
+      showToast(`Reset ${u.name}'s password to Raven1310! (must change on next login)`, 'info');
+    }
+
     function openProfileModal() {
       const u = APP_STATE.currentUser;
       if (u) {
@@ -2284,6 +2707,7 @@
       document.getElementById('tursoUrlInput').value = APP_STATE.cloudConfig.tursoUrl || '';
       document.getElementById('tursoTokenInput').value = APP_STATE.cloudConfig.tursoToken || '';
       document.getElementById('driveDiagnosticBox').classList.add('hidden');
+      renderTeamRosterInModal();
       openModal('profileModal');
     }
 
@@ -2303,6 +2727,7 @@
       try {
         await GoogleDriveVault.ensureAuthorized(true);
         const folderMeta = await GoogleDriveVault.verifyRootFolder();
+        await GoogleDriveVault.syncManifestJson();
         document.getElementById('driveModalStatus').textContent = `Linked: ${folderMeta.name}`;
         updateConnectionBadges();
         await TursoCloudSQL.pushAllFromState().catch(() => {});
@@ -2351,8 +2776,11 @@
         if (APP_STATE.cloudConfig.driveClientId && APP_STATE.cloudConfig.driveFolderId) {
           await GoogleDriveVault.ensureAuthorized(false);
           await GoogleDriveVault.verifyRootFolder();
+          await GoogleDriveVault.syncManifestJson();
         }
         updateConnectionBadges();
+        renderProjectSelector();
+        renderFolderTree();
         renderFileExplorer();
         updateProductionCountBadge();
         showToast('Workspace synchronized', 'success');
