@@ -87,7 +87,7 @@
 </head>
 <body class="bg-raven-bg text-zinc-100 antialiased selection:bg-raven-red selection:text-white overflow-x-hidden">
 
-  <!-- Toast Banner -->
+  <!-- Toast Notification Stack -->
   <div id="toastContainer" class="fixed bottom-4 right-4 z-[100] flex flex-col gap-2 pointer-events-none max-w-sm w-full px-4 sm:px-0"></div>
 
   <!-- ======================================================================= -->
@@ -157,6 +157,7 @@
               <option value="Drivetrain">Drivetrain</option>
               <option value="Mechanisms">Mechanisms</option>
               <option value="Fabrication">Fabrication</option>
+              <option value="Controls">Controls</option>
             </select>
           </div>
         </div>
@@ -254,7 +255,12 @@
         </div>
         <div id="folderTreeContainer" class="space-y-1 max-h-48 lg:max-h-none overflow-y-auto"></div>
 
+        <!-- Quick Vault Stats -->
         <div class="mt-auto pt-3 border-t border-raven-border/70 hidden lg:block space-y-2 text-[11px] text-zinc-400">
+          <div class="flex items-center justify-between">
+            <span>Custom / COTS Parts</span>
+            <span id="vaultPartRatioPill" class="font-mono text-[10px] text-zinc-300">0 / 0</span>
+          </div>
           <div class="flex items-center justify-between">
             <span>Google Drive Vault</span>
             <span id="driveConnectionPill" class="font-mono text-[10px] px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-300">Not Linked</span>
@@ -266,11 +272,17 @@
         </div>
       </aside>
 
-      <!-- Center Asset Table -->
-      <section class="flex-1 flex flex-col min-w-0 bg-raven-bg">
-        <!-- Toolbar -->
+      <!-- Center Asset Table + Drag & Drop Zone -->
+      <section id="explorerDropZone" ondragover="handleExplorerDragOver(event)" ondragleave="handleExplorerDragLeave(event)" ondrop="handleExplorerDrop(event)" class="flex-1 flex flex-col min-w-0 bg-raven-bg relative transition">
+        <!-- Drag Overlay -->
+        <div id="explorerDropOverlay" class="hidden absolute inset-3 z-20 rounded-2xl border-2 border-dashed border-raven-red bg-zinc-950/90 flex flex-col items-center justify-center pointer-events-none">
+          <div class="text-sm font-bold text-white">Drop .STL or .OBJ CAD File to Register</div>
+          <div class="text-xs text-zinc-400 mt-1">Automatically parses real 3D geometry, bounding box &amp; syncs to Drive</div>
+        </div>
+
+        <!-- Toolbar & Breadcrumbs -->
         <div class="p-3 sm:p-4 border-b border-raven-border flex flex-wrap items-center justify-between gap-2">
-          <div class="flex items-center gap-2 text-xs text-zinc-400">
+          <div id="breadcrumbBar" class="flex items-center flex-wrap gap-1.5 text-xs text-zinc-400">
             <span class="font-mono text-zinc-200 font-semibold" id="currentPathBreadcrumb">/</span>
             <span id="assetCountLabel" class="px-2 py-0.5 rounded-full bg-zinc-900 border border-raven-border text-[11px]">0 items</span>
           </div>
@@ -283,6 +295,7 @@
               <option value="In Review">In Review</option>
               <option value="Released">Released</option>
               <option value="COTS">COTS Only</option>
+              <option value="CUSTOM">Custom Only</option>
             </select>
             <button type="button" onclick="openNewAssetModal()" class="px-3.5 py-1.5 rounded-xl bg-raven-red hover:bg-raven-redHover text-white text-xs font-semibold shadow-sm transition">
               + New CAD
@@ -384,14 +397,15 @@
       </aside>
 
       <!-- Center 3D Viewport -->
-      <section class="flex-1 flex flex-col relative bg-zinc-950 min-h-[380px]">
+      <section class="flex-1 flex flex-col relative bg-zinc-950 min-h-[400px]">
         <!-- Viewport Top Controls -->
         <div class="absolute top-3 left-3 right-3 z-10 flex flex-wrap items-center justify-between gap-2 pointer-events-none">
-          <div class="flex items-center gap-1 bg-raven-panel/90 backdrop-blur border border-raven-border p-1 rounded-xl pointer-events-auto">
-            <button type="button" onclick="setRenderMode('shaded')" class="px-2.5 py-1 rounded-lg text-[11px] font-medium hover:bg-zinc-800 text-zinc-200">Shaded</button>
-            <button type="button" onclick="setRenderMode('wireframe')" class="px-2.5 py-1 rounded-lg text-[11px] font-medium hover:bg-zinc-800 text-zinc-200">Wireframe</button>
-            <button type="button" onclick="setRenderMode('xray')" class="px-2.5 py-1 rounded-lg text-[11px] font-medium hover:bg-zinc-800 text-zinc-200">X-Ray</button>
-            <button type="button" onclick="resetViewportCamera()" class="px-2.5 py-1 rounded-lg text-[11px] font-medium hover:bg-zinc-800 text-zinc-400">Reset View</button>
+          <div class="flex flex-wrap items-center gap-1 bg-raven-panel/90 backdrop-blur border border-raven-border p-1 rounded-xl pointer-events-auto">
+            <button id="modeShadedBtn" type="button" onclick="setRenderMode('shaded')" class="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-zinc-800 text-white">Shaded</button>
+            <button id="modeWireframeBtn" type="button" onclick="setRenderMode('wireframe')" class="px-2.5 py-1 rounded-lg text-[11px] font-medium hover:bg-zinc-800 text-zinc-300">Wireframe</button>
+            <button id="modeXrayBtn" type="button" onclick="setRenderMode('xray')" class="px-2.5 py-1 rounded-lg text-[11px] font-medium hover:bg-zinc-800 text-zinc-300">X-Ray</button>
+            <button id="measureToolBtn" type="button" onclick="toggleMeasureMode()" class="px-2.5 py-1 rounded-lg text-[11px] font-medium hover:bg-zinc-800 text-sky-300 border border-transparent">📏 Measure</button>
+            <button type="button" onclick="resetViewportCamera()" class="px-2.5 py-1 rounded-lg text-[11px] font-medium hover:bg-zinc-800 text-zinc-400">Reset</button>
           </div>
 
           <div class="flex items-center gap-2 bg-raven-panel/90 backdrop-blur border border-raven-border px-3 py-1.5 rounded-xl pointer-events-auto text-[11px]">
@@ -402,6 +416,22 @@
           </div>
         </div>
 
+        <!-- Live Measurement Readout Pill -->
+        <div id="measureReadoutPill" class="hidden absolute top-14 left-3 z-10 bg-sky-950/90 border border-sky-500/50 text-sky-200 px-3 py-1.5 rounded-xl text-xs font-mono flex items-center gap-2">
+          <span id="measureReadoutText">Click two points on the 3D mesh to measure</span>
+          <button type="button" onclick="clearMeasurements()" class="text-[10px] px-1.5 py-0.5 rounded bg-sky-500/20 hover:bg-sky-500/40">Clear</button>
+        </div>
+
+        <!-- Bottom Part Telemetry HUD -->
+        <div class="absolute bottom-3 left-3 right-3 z-10 flex flex-wrap items-center justify-between gap-2 pointer-events-none text-[11px] font-mono">
+          <div class="bg-raven-panel/85 backdrop-blur border border-raven-border px-3 py-1 rounded-lg text-zinc-300">
+            BBox: <span id="wsHudBbox" class="text-white">—</span> • Mass: <span id="wsHudMass" class="text-white">—</span>
+          </div>
+          <div class="bg-raven-panel/85 backdrop-blur border border-raven-border px-3 py-1 rounded-lg text-zinc-400 hidden sm:block">
+            Drag: Orbit • Right-Drag: Pan • Scroll: Zoom
+          </div>
+        </div>
+
         <!-- Diff Banner -->
         <div id="diffModeBanner" class="hidden absolute bottom-12 left-1/2 -translate-x-1/2 z-10 bg-amber-950/90 border border-amber-500/50 px-4 py-2 rounded-xl flex items-center gap-3 text-xs">
           <span>3D Diff: <strong id="diffBaseLabel">v1</strong> vs <strong id="diffTargetLabel">v2</strong></span>
@@ -409,7 +439,7 @@
         </div>
 
         <div id="mainCanvasContainer" class="flex-1 w-full h-full">
-          <canvas id="mainThreeCanvas" class="w-full h-full block"></canvas>
+          <canvas id="mainThreeCanvas" onclick="handleMainCanvasClick(event)" class="w-full h-full block"></canvas>
         </div>
       </section>
 
@@ -777,6 +807,8 @@
       renderMode: 'shaded',
       explodeFactor: 0,
       diffBaseRev: null,
+      measureMode: false,
+      measurePoints: [],
       users: JSON.parse(JSON.stringify(DEFAULT_SEED_STATE.users)),
       projects: JSON.parse(JSON.stringify(DEFAULT_SEED_STATE.projects)),
       folders: JSON.parse(JSON.stringify(DEFAULT_SEED_STATE.folders)),
@@ -958,7 +990,7 @@
     };
 
     // -------------------------------------------------------------------------
-    // TURSO CLOUD SQL SYNC CLIENT (LIBSQL HTTP PIPELINE)
+    // TURSO CLOUD SQL SYNC CLIENT (NORMALIZED RELATIONAL TABLES)
     // -------------------------------------------------------------------------
     const TursoCloudSQL = {
       getEndpoint() {
@@ -1008,6 +1040,9 @@
           `CREATE TABLE IF NOT EXISTS folders (id TEXT PRIMARY KEY, project_id TEXT, path TEXT, name TEXT)`,
           `CREATE TABLE IF NOT EXISTS cad_files (id TEXT PRIMARY KEY, project_id TEXT, part_number TEXT, file_name TEXT, directory_path TEXT, lifecycle TEXT, active_rev INTEGER, locked_by TEXT, locked_by_email TEXT, is_cots INTEGER, custom_dimensions_json TEXT, bom_json TEXT, pins_json TEXT)`,
           `CREATE TABLE IF NOT EXISTS revisions (id TEXT PRIMARY KEY, file_id TEXT, rev INTEGER, author TEXT, notes TEXT, mass_kg REAL, bbox TEXT, timestamp TEXT, mesh_data TEXT, has_binary_mesh INTEGER)`,
+          `CREATE TABLE IF NOT EXISTS bom_items (id TEXT PRIMARY KEY, file_id TEXT, part_no TEXT, description TEXT, qty INTEGER, material TEXT)`,
+          `CREATE TABLE IF NOT EXISTS review_pins (id TEXT PRIMARY KEY, file_id TEXT, author TEXT, note_text TEXT, created_at TEXT)`,
+          `CREATE TABLE IF NOT EXISTS production_drawings (file_id TEXT PRIMARY KEY, sheet_size TEXT, dimensions_json TEXT, updated_at TEXT)`,
           `CREATE TABLE IF NOT EXISTS app_config (key TEXT PRIMARY KEY, value TEXT)`
         ]);
       },
@@ -1020,7 +1055,10 @@
           `DELETE FROM projects`,
           `DELETE FROM folders`,
           `DELETE FROM cad_files`,
-          `DELETE FROM revisions`
+          `DELETE FROM revisions`,
+          `DELETE FROM bom_items`,
+          `DELETE FROM review_pins`,
+          `DELETE FROM production_drawings`
         ];
 
         for (const u of APP_STATE.users) {
@@ -1057,6 +1095,25 @@
                 r.id, f.id, r.rev, r.author, r.notes, r.massKg || 0, r.bbox || '', r.timestamp || '',
                 r.meshData || null, r.hasBinaryMesh ? 1 : 0
               ]
+            });
+          }
+          (f.bom || []).forEach((b, idx) => {
+            stmts.push({
+              sql: `INSERT INTO bom_items (id, file_id, part_no, description, qty, material) VALUES (?, ?, ?, ?, ?, ?)`,
+              args: [`${f.id}-bom-${idx}`, f.id, b.partNo || '', b.desc || '', b.qty || 1, b.material || '']
+            });
+          });
+          (f.pins || []).forEach((pin, idx) => {
+            stmts.push({
+              sql: `INSERT INTO review_pins (id, file_id, author, note_text, created_at) VALUES (?, ?, ?, ?, ?)`,
+              args: [pin.id || `${f.id}-pin-${idx}`, f.id, pin.author || '', pin.text || '', pin.timestamp || '']
+            });
+          });
+          if (f.lifecycle === 'Released' && !f.isCots) {
+            const dwg = generateAutoDrawingRecord(f);
+            stmts.push({
+              sql: `INSERT INTO production_drawings (file_id, sheet_size, dimensions_json, updated_at) VALUES (?, ?, ?, ?)`,
+              args: [f.id, dwg.sheetSize, JSON.stringify(dwg.dimensions), new Date().toISOString()]
             });
           }
         }
@@ -1377,7 +1434,7 @@
 
       const user = APP_STATE.users.find(u => u.email.toLowerCase() === email && u.passwordHash === pass);
       if (!user) {
-        errBox.textContent = 'Invalid email or password. Use ryan@frc1310.ca / Raven1310! or create an account.';
+        errBox.textContent = 'Invalid email or password.';
         errBox.classList.remove('hidden');
         return;
       }
@@ -1502,7 +1559,7 @@
         obj3d.traverse(child => {
           if (!child.isMesh || !child.geometry || !child.geometry.attributes?.position) return;
           const pos = child.geometry.attributes.position;
-          const step = Math.max(1, Math.floor(pos.count / 420));
+          const step = Math.max(1, Math.floor(pos.count / 450));
           for (let i = 0; i < pos.count; i += step) {
             const nx = size.x > 0 ? (pos.getX(i) - box.min.x) / size.x : 0.5;
             const ny = size.y > 0 ? (pos.getY(i) - box.min.y) / size.y : 0.5;
@@ -1517,7 +1574,7 @@
         return {
           bbox: `${wMm} x ${hMm} x ${dMm} mm`,
           massKg: estMassKg,
-          silhouetteJson: JSON.stringify({ wMm, hMm, dMm, pts: pts2d.slice(0, 420) })
+          silhouetteJson: JSON.stringify({ wMm, hMm, dMm, pts: pts2d.slice(0, 450) })
         };
       } catch (err) {
         console.warn('CAD metric extraction warning:', err);
@@ -1789,11 +1846,17 @@
     }
 
     // -------------------------------------------------------------------------
-    // EXPLORER, HIERARCHICAL FOLDERS, COTS TAGGING & FILE OPERATIONS
+    // EXPLORER, HIERARCHICAL FOLDERS, DRAG & DROP, COTS TAGGING
     // -------------------------------------------------------------------------
     function updateProductionCountBadge() {
       const count = APP_STATE.files.filter(f => f.lifecycle === 'Released' && !f.isCots).length;
       document.getElementById('productionCountBadge').textContent = count;
+
+      const projFiles = APP_STATE.files.filter(f => f.projectId === APP_STATE.activeProjectId);
+      const customCount = projFiles.filter(f => !f.isCots).length;
+      const cotsCount = projFiles.filter(f => f.isCots).length;
+      const ratioEl = document.getElementById('vaultPartRatioPill');
+      if (ratioEl) ratioEl.textContent = `${customCount} / ${cotsCount}`;
     }
 
     function updateConnectionBadges() {
@@ -1822,6 +1885,7 @@
       APP_STATE.activeFolderPath = '/';
       renderFolderTree();
       renderFileExplorer();
+      updateProductionCountBadge();
     }
 
     function openNewProjectModal() {
@@ -1896,21 +1960,63 @@
 
     function selectFolderPath(path) {
       APP_STATE.activeFolderPath = path;
-      document.getElementById('currentPathBreadcrumb').textContent = path;
       renderFolderTree();
       renderFileExplorer();
     }
 
+    function renderBreadcrumbBar() {
+      const bar = document.getElementById('breadcrumbBar');
+      if (!bar) return;
+      const segments = (APP_STATE.activeFolderPath || '/').split('/').filter(Boolean);
+      let html = `<button type="button" onclick="selectFolderPath('/')" class="font-mono text-zinc-200 hover:text-raven-red font-semibold">/</button>`;
+      let acc = '';
+      segments.forEach(seg => {
+        acc += '/' + seg;
+        const target = acc;
+        html += `<span class="text-zinc-600">/</span><button type="button" onclick="selectFolderPath('${escapeHtml(target)}')" class="font-mono text-zinc-200 hover:text-raven-red font-semibold">${escapeHtml(seg)}</button>`;
+      });
+      html += `<span id="assetCountLabel" class="ml-1 px-2 py-0.5 rounded-full bg-zinc-900 border border-raven-border text-[11px]">0 items</span>`;
+      bar.innerHTML = html;
+    }
+
+    function handleExplorerDragOver(e) {
+      e.preventDefault();
+      document.getElementById('explorerDropOverlay')?.classList.remove('hidden');
+    }
+
+    function handleExplorerDragLeave(e) {
+      if (e.currentTarget.contains(e.relatedTarget)) return;
+      document.getElementById('explorerDropOverlay')?.classList.add('hidden');
+    }
+
+    async function handleExplorerDrop(e) {
+      e.preventDefault();
+      document.getElementById('explorerDropOverlay')?.classList.add('hidden');
+      const file = e.dataTransfer?.files?.[0];
+      if (!file) return;
+      openNewAssetModal();
+      const dt = new DataTransfer();
+      dt.items.add(file);
+      const inp = document.getElementById('newAssetFileInput');
+      if (inp) {
+        inp.files = dt.files;
+        autofillNewAssetName(inp);
+      }
+      const nextNum = 1000 + APP_STATE.files.length + 1;
+      document.getElementById('newAssetPartNo').value = `PRT-${nextNum}`;
+    }
+
     function renderFileExplorer() {
+      renderBreadcrumbBar();
       const search = (document.getElementById('assetSearchInput')?.value || '').toLowerCase();
       const filter = document.getElementById('lifecycleFilterSelect')?.value || 'ALL';
-      document.getElementById('currentPathBreadcrumb').textContent = APP_STATE.activeFolderPath;
 
       const items = APP_STATE.files.filter(f => {
         if (f.projectId !== APP_STATE.activeProjectId) return false;
         if (APP_STATE.activeFolderPath !== '/' && f.directoryPath !== APP_STATE.activeFolderPath) return false;
         if (filter === 'COTS' && !f.isCots) return false;
-        if (filter !== 'ALL' && filter !== 'COTS' && f.lifecycle !== filter) return false;
+        if (filter === 'CUSTOM' && f.isCots) return false;
+        if (filter !== 'ALL' && filter !== 'COTS' && filter !== 'CUSTOM' && f.lifecycle !== filter) return false;
         if (search) {
           const hay = `${f.partNumber} ${f.fileName} ${f.isCots ? 'cots' : ''}`.toLowerCase();
           if (!hay.includes(search)) return false;
@@ -1918,11 +2024,12 @@
         return true;
       });
 
-      document.getElementById('assetCountLabel').textContent = `${items.length} item${items.length === 1 ? '' : 's'}`;
+      const countEl = document.getElementById('assetCountLabel');
+      if (countEl) countEl.textContent = `${items.length} item${items.length === 1 ? '' : 's'}`;
       const tbody = document.getElementById('assetTableBody');
 
       if (items.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="py-12 text-center text-zinc-500">No CAD parts in this folder yet. Click <strong>+ New CAD</strong> to upload an .STL or .OBJ file.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" class="py-12 text-center text-zinc-500">No CAD parts in this folder yet. Click <strong>+ New CAD</strong> or drag &amp; drop an .STL / .OBJ file here.</td></tr>`;
         return;
       }
 
@@ -2208,7 +2315,7 @@
     }
 
     // -------------------------------------------------------------------------
-    // WORKSPACE NAVIGATION & 3D VIEWPORT (THREE.JS + STL/OBJ LOADER)
+    // WORKSPACE NAVIGATION & 3D VIEWPORT (THREE.JS + MEASURE + STL/OBJ)
     // -------------------------------------------------------------------------
     function switchWorkspaceTab(tab) {
       APP_STATE.activeTab = tab;
@@ -2248,11 +2355,14 @@
       const f = APP_STATE.files.find(item => item.id === APP_STATE.selectedFileId);
       if (!f) return;
 
+      const latestRev = (f.revisions || [])[f.revisions.length - 1] || {};
       document.getElementById('wsPartNumber').textContent = f.partNumber;
       document.getElementById('wsLifecycleBadge').textContent = f.lifecycle;
       document.getElementById('wsFileName').textContent = f.fileName;
       document.getElementById('wsFilePath').textContent = f.directoryPath;
       document.getElementById('wsLifecycleSelect').value = f.lifecycle;
+      document.getElementById('wsHudBbox').textContent = latestRev.bbox || '—';
+      document.getElementById('wsHudMass').textContent = latestRev.massKg ? `${latestRev.massKg} kg` : '—';
 
       const cotsBtn = document.getElementById('wsCotsToggleBtn');
       cotsBtn.textContent = f.isCots ? 'COTS ✓ (No Prod PDF)' : '+ Tag COTS';
@@ -2387,10 +2497,11 @@
     }
 
     // -------------------------------------------------------------------------
-    // THREE.JS VIEWPORTS (MAIN + MINI QUICK PREVIEW)
+    // THREE.JS VIEWPORTS (MAIN + MINI + 3D POINT-TO-POINT MEASUREMENT)
     // -------------------------------------------------------------------------
     let mainScene, mainCamera, mainRenderer, mainControls, activeModelGroup = null, diffGhostGroup = null;
     let miniScene, miniCamera, miniRenderer, miniModelGroup = null;
+    let measureVisualGroup = null, activeScaleToMm = 1;
     const clipPlanes = [new THREE.Plane(new THREE.Vector3(-1, 0, 0), 1.5)];
 
     async function initThreeJsViewports() {
@@ -2410,6 +2521,9 @@
         const grid = new THREE.GridHelper(6, 12, 0x27272f, 0x18181d);
         grid.position.y = -1.1;
         mainScene.add(grid);
+
+        measureVisualGroup = new THREE.Group();
+        mainScene.add(measureVisualGroup);
 
         mainScene.add(new THREE.AmbientLight(0xffffff, 0.65));
         const dirLight = new THREE.DirectionalLight(0xffffff, 0.9);
@@ -2452,6 +2566,66 @@
         if (miniRenderer && miniScene && miniCamera) miniRenderer.render(miniScene, miniCamera);
       }
       animate();
+    }
+
+    function toggleMeasureMode() {
+      APP_STATE.measureMode = !APP_STATE.measureMode;
+      const btn = document.getElementById('measureToolBtn');
+      const pill = document.getElementById('measureReadoutPill');
+      if (APP_STATE.measureMode) {
+        btn.classList.add('bg-sky-500/20', 'border-sky-500/50');
+        pill.classList.remove('hidden');
+        document.getElementById('measureReadoutText').textContent = 'Click 2 points on part to measure distance';
+      } else {
+        btn.classList.remove('bg-sky-500/20', 'border-sky-500/50');
+        pill.classList.add('hidden');
+        clearMeasurements();
+      }
+    }
+
+    function clearMeasurements() {
+      APP_STATE.measurePoints = [];
+      if (measureVisualGroup) {
+        while (measureVisualGroup.children.length > 0) {
+          measureVisualGroup.remove(measureVisualGroup.children[0]);
+        }
+      }
+      document.getElementById('measureReadoutText').textContent = 'Click 2 points on part to measure distance';
+    }
+
+    function handleMainCanvasClick(event) {
+      if (!APP_STATE.measureMode || !activeModelGroup || !mainCamera || !mainRenderer) return;
+      const rect = mainRenderer.domElement.getBoundingClientRect();
+      const mouse = new THREE.Vector2(
+        ((event.clientX - rect.left) / rect.width) * 2 - 1,
+        -((event.clientY - rect.top) / rect.height) * 2 + 1
+      );
+      const raycaster = new THREE.Raycaster();
+      raycaster.setFromCamera(mouse, mainCamera);
+      const hits = raycaster.intersectObjects(activeModelGroup.children, true);
+      if (hits.length === 0) return;
+
+      if (APP_STATE.measurePoints.length >= 2) clearMeasurements();
+      const pt = hits[0].point.clone();
+      APP_STATE.measurePoints.push(pt);
+
+      const dot = new THREE.Mesh(
+        new THREE.SphereGeometry(0.045, 16, 16),
+        new THREE.MeshBasicMaterial({ color: 0x38bdf8 })
+      );
+      dot.position.copy(pt);
+      measureVisualGroup.add(dot);
+
+      if (APP_STATE.measurePoints.length === 2) {
+        const [p1, p2] = APP_STATE.measurePoints;
+        const lineGeo = new THREE.BufferGeometry().setFromPoints([p1, p2]);
+        measureVisualGroup.add(new THREE.Line(lineGeo, new THREE.LineBasicMaterial({ color: 0x38bdf8 })));
+        const distMm = (p1.distanceTo(p2) * activeScaleToMm).toFixed(2);
+        const distIn = (parseFloat(distMm) / 25.4).toFixed(3);
+        document.getElementById('measureReadoutText').textContent = `Distance: ${distMm} mm (${distIn}")`;
+      } else {
+        document.getElementById('measureReadoutText').textContent = 'Point 1 set — click second point...';
+      }
     }
 
     function resetViewportCamera() {
@@ -2510,6 +2684,8 @@
 
       const lowerFileName = (file?.fileName || '').toLowerCase();
       const revObj = (file?.revisions || []).find(r => r.rev === revNum) || (file?.revisions || [])[file.revisions.length - 1];
+      const { wMm, hMm, dMm } = parseBboxMillimeters(revObj?.bbox);
+      activeScaleToMm = (Math.max(wMm, hMm, dMm) || 150) / 2.6;
 
       // 1. Real Binary or ASCII .STL / .OBJ from IndexedDB or Google Drive
       if (binaryBuffer && binaryBuffer.byteLength > 0) {
@@ -2585,7 +2761,6 @@
       }
 
       // 3. Fallback Billet Plate Geometry scaled to BBox
-      const { wMm, hMm, dMm } = parseBboxMillimeters(revObj?.bbox);
       const maxDim = Math.max(wMm, hMm, dMm) || 150;
       const baseMesh = new THREE.Mesh(
         new THREE.BoxGeometry((wMm / maxDim) * 2.4, (dMm / maxDim) * 2.4 + 0.14, (hMm / maxDim) * 2.4),
@@ -2597,6 +2772,7 @@
 
     async function loadFileIntoMainViewport(file, revNum) {
       if (!mainScene) return;
+      clearMeasurements();
       const binaryBuf = await resolveBinaryMeshForRevision(file, revNum);
       if (activeModelGroup) mainScene.remove(activeModelGroup);
       if (diffGhostGroup) {
@@ -2619,6 +2795,14 @@
 
     function setRenderMode(mode) {
       APP_STATE.renderMode = mode;
+      ['Shaded', 'Wireframe', 'Xray'].forEach(label => {
+        const btn = document.getElementById(`mode${label}Btn`);
+        if (btn) {
+          btn.className = label.toLowerCase() === mode
+            ? 'px-2.5 py-1 rounded-lg text-[11px] font-medium bg-zinc-800 text-white'
+            : 'px-2.5 py-1 rounded-lg text-[11px] font-medium hover:bg-zinc-800 text-zinc-300';
+        }
+      });
       if (activeModelGroup) applyRenderModeToGroup(activeModelGroup, mode);
     }
 
