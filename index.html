@@ -24,9 +24,9 @@
           colors: {
             raven: {
               bg: '#09090b',
-              panel: '#121216',
-              card: '#18181d',
-              border: '#27272f',
+              panel: '#111115',
+              card: '#18181e',
+              border: '#272730',
               red: '#ff3820',
               redHover: '#e02812'
             }
@@ -81,8 +81,14 @@
     code, pre, .font-mono { font-family: 'Roboto Mono', monospace !important; }
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: #09090b; }
-    ::-webkit-scrollbar-thumb { background: #27272f; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb { background: #272730; border-radius: 9999px; }
     ::-webkit-scrollbar-thumb:hover { background: #3f3f46; }
+    .blueprint-grid {
+      background-image:
+        linear-gradient(to right, rgba(255,255,255,0.03) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
   </style>
 </head>
 <body class="bg-raven-bg text-zinc-100 antialiased selection:bg-raven-red selection:text-white overflow-x-hidden">
@@ -93,18 +99,18 @@
   <!-- ======================================================================= -->
   <!-- AUTHENTICATION GATEWAY (SIGN IN / CREATE ACCOUNT / FORCE PASSWORD)       -->
   <!-- ======================================================================= -->
-  <div id="authView" class="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-zinc-950 via-[#101015] to-zinc-950">
+  <div id="authView" class="min-h-screen flex items-center justify-center p-4 blueprint-grid bg-gradient-to-br from-zinc-950 via-[#101016] to-zinc-950">
     <div class="w-full max-w-md bg-raven-panel border border-raven-border rounded-2xl shadow-2xl p-6 sm:p-8">
-      <div class="flex items-center gap-3 mb-6">
-        <div class="w-11 h-11 rounded-xl bg-raven-red/15 border border-raven-red/40 flex items-center justify-center text-raven-red shadow-inner">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+      <div class="flex items-center gap-3.5 mb-6">
+        <div class="w-12 h-12 rounded-2xl bg-raven-red/15 border border-raven-red/40 flex items-center justify-center text-raven-red shadow-inner">
+          <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2.1" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 2L3 7l9 5 9-5-9-5zm0 10l-9-5v10l9 5 9-5V7l-9 5z"/>
           </svg>
         </div>
         <div>
           <div class="flex items-center gap-2">
-            <h1 class="text-lg font-bold tracking-tight text-white">Raven Workbench</h1>
-            <span class="text-[10px] font-mono uppercase px-2 py-0.5 rounded-full bg-raven-red/20 text-raven-red border border-raven-red/30">FRC 1310</span>
+            <h1 class="text-xl font-black tracking-tight text-white">Raven Workbench</h1>
+            <span class="text-[10px] font-mono uppercase px-2 py-0.5 rounded-full bg-raven-red/20 text-raven-red border border-raven-red/30 font-bold">FRC 1310</span>
           </div>
           <p class="text-xs text-zinc-400">Runnymede Robotics • Cloud CAD PDM &amp; Manufacturing</p>
         </div>
@@ -126,7 +132,7 @@
           <input id="signInPassword" type="password" required placeholder="••••••••" class="w-full px-3.5 py-2.5 rounded-xl bg-zinc-900 border border-raven-border text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-raven-red" />
         </div>
         <div id="signInError" class="hidden text-xs text-red-400 bg-red-950/50 border border-red-800/60 rounded-xl px-3 py-2"></div>
-        <button type="submit" class="w-full py-2.5 rounded-xl bg-raven-red hover:bg-raven-redHover text-white font-semibold text-sm shadow-lg shadow-raven-red/20 transition cursor-pointer">
+        <button type="submit" class="w-full py-2.5 rounded-xl bg-raven-red hover:bg-raven-redHover text-white font-semibold text-sm shadow-lg shadow-raven-red/25 transition cursor-pointer">
           Enter Workbench
         </button>
       </form>
@@ -166,7 +172,7 @@
           <input id="signUpPassword" type="password" required minlength="6" placeholder="Min 6 characters" class="w-full px-3.5 py-2 rounded-xl bg-zinc-900 border border-raven-border text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-raven-red" />
         </div>
         <div id="signUpError" class="hidden text-xs text-red-400 bg-red-950/50 border border-red-800/60 rounded-xl px-3 py-2"></div>
-        <button type="submit" class="w-full py-2.5 rounded-xl bg-raven-red hover:bg-raven-redHover text-white font-semibold text-sm shadow-lg shadow-raven-red/20 transition cursor-pointer">
+        <button type="submit" class="w-full py-2.5 rounded-xl bg-raven-red hover:bg-raven-redHover text-white font-semibold text-sm shadow-lg shadow-raven-red/25 transition cursor-pointer">
           Create Account &amp; Enter
         </button>
       </form>
@@ -200,28 +206,29 @@
     <header class="sticky top-0 z-40 bg-raven-panel/95 backdrop-blur border-b border-raven-border px-3 sm:px-5 py-2.5 flex flex-wrap items-center justify-between gap-2">
       <div class="flex items-center gap-3">
         <button type="button" onclick="navigateToDesigns()" class="flex items-center gap-2.5 text-left group">
-          <div class="w-8 h-8 rounded-lg bg-raven-red flex items-center justify-center text-white font-black text-sm shadow">1310</div>
+          <div class="w-9 h-9 rounded-xl bg-raven-red flex items-center justify-center text-white font-black text-sm shadow-lg shadow-raven-red/20">1310</div>
           <div>
             <div class="flex items-center gap-2">
               <span class="font-bold text-sm sm:text-base text-white group-hover:text-raven-red transition">Raven Workbench</span>
               <span id="dbStatusBadge" class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">SQLite Ready</span>
             </div>
+            <div class="text-[10px] text-zinc-500 hidden sm:block">Cloud CAD PDM &amp; Manufacturing Release</div>
           </div>
         </button>
 
         <!-- Project Selector -->
         <div class="flex items-center gap-1.5 pl-2 sm:pl-3 border-l border-raven-border">
-          <select id="projectSelector" onchange="handleProjectChange(this.value)" class="px-2.5 py-1.5 rounded-lg bg-zinc-900 border border-raven-border text-xs font-medium text-zinc-200 focus:outline-none focus:border-raven-red max-w-[165px] sm:max-w-none"></select>
-          <button type="button" onclick="openNewProjectModal()" title="Create New Project" class="p-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-raven-border text-zinc-300 text-xs">+</button>
+          <select id="projectSelector" onchange="handleProjectChange(this.value)" class="px-2.5 py-1.5 rounded-xl bg-zinc-900 border border-raven-border text-xs font-medium text-zinc-200 focus:outline-none focus:border-raven-red max-w-[165px] sm:max-w-none"></select>
+          <button type="button" onclick="openNewProjectModal()" title="Create New Robot / Subsystem Project" class="px-2.5 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-raven-border text-zinc-300 text-xs font-bold">+</button>
         </div>
       </div>
 
       <!-- Center Mode Switcher -->
       <div class="flex items-center gap-1 bg-zinc-900 p-1 rounded-xl border border-raven-border">
-        <button id="navDesignsBtn" type="button" onclick="switchWorkspaceTab('designs')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-raven-red text-white transition">
-          Designs
+        <button id="navDesignsBtn" type="button" onclick="switchWorkspaceTab('designs')" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-raven-red text-white transition">
+          Designs Vault
         </button>
-        <button id="navProductionBtn" type="button" onclick="switchWorkspaceTab('production')" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-zinc-400 hover:text-white transition flex items-center gap-1.5">
+        <button id="navProductionBtn" type="button" onclick="switchWorkspaceTab('production')" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-zinc-400 hover:text-white transition flex items-center gap-1.5">
           <span>Ready for Production</span>
           <span id="productionCountBadge" class="px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-zinc-800 text-zinc-300">0</span>
         </button>
@@ -229,11 +236,11 @@
 
       <!-- Right Controls: Sync + Profile -->
       <div class="flex items-center gap-2">
-        <button type="button" onclick="triggerFullCloudSync()" title="Sync Turso Cloud SQL & Google Drive" class="px-2.5 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-raven-border text-xs font-medium text-zinc-200 flex items-center gap-1.5 transition">
+        <button type="button" onclick="triggerFullCloudSync()" title="Two-Way Sync Turso Cloud SQL & Google Drive" class="px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-raven-border text-xs font-medium text-zinc-200 flex items-center gap-1.5 transition">
           <svg id="syncSpinnerIcon" class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
           </svg>
-          <span class="hidden md:inline">Sync</span>
+          <span class="hidden md:inline">Cloud Sync</span>
         </button>
 
         <button type="button" onclick="openProfileModal()" class="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-raven-border text-xs transition">
@@ -248,26 +255,30 @@
     <!-- ===================================================================== -->
     <main id="designsView" class="flex-1 flex flex-col lg:flex-row overflow-hidden">
       <!-- Left Hierarchical Folder Tree Sidebar -->
-      <aside class="w-full lg:w-64 bg-raven-panel border-b lg:border-b-0 lg:border-r border-raven-border p-3 flex flex-col gap-3 shrink-0">
+      <aside class="w-full lg:w-64 bg-raven-panel border-b lg:border-b-0 lg:border-r border-raven-border p-3.5 flex flex-col gap-3 shrink-0">
         <div class="flex items-center justify-between">
           <span class="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Subsystem Folders</span>
-          <button type="button" onclick="openNewFolderModal()" class="text-xs px-2 py-1 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-raven-border text-zinc-300">+ Subfolder</button>
+          <button type="button" onclick="openNewFolderModal()" class="text-xs px-2.5 py-1 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-raven-border text-zinc-300 font-medium">+ Folder</button>
         </div>
         <div id="folderTreeContainer" class="space-y-1 max-h-48 lg:max-h-none overflow-y-auto"></div>
 
-        <!-- Quick Vault Stats -->
+        <!-- Quick Vault Telemetry & Cloud Status -->
         <div class="mt-auto pt-3 border-t border-raven-border/70 hidden lg:block space-y-2 text-[11px] text-zinc-400">
           <div class="flex items-center justify-between">
             <span>Custom / COTS Parts</span>
-            <span id="vaultPartRatioPill" class="font-mono text-[10px] text-zinc-300">0 / 0</span>
+            <span id="vaultPartRatioPill" class="font-mono text-[10px] text-zinc-200 font-semibold">0 / 0</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span>Released for Fab</span>
+            <span id="vaultReleasedRatioPill" class="font-mono text-[10px] text-emerald-400 font-semibold">0</span>
           </div>
           <div class="flex items-center justify-between">
             <span>Google Drive Vault</span>
-            <span id="driveConnectionPill" class="font-mono text-[10px] px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-300">Not Linked</span>
+            <button type="button" onclick="openProfileModal()" id="driveConnectionPill" class="font-mono text-[10px] px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-300 hover:underline">Not Linked</button>
           </div>
           <div class="flex items-center justify-between">
             <span>Turso Cloud SQL</span>
-            <span id="tursoConnectionPill" class="font-mono text-[10px] px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-300">Local Mode</span>
+            <button type="button" onclick="openProfileModal()" id="tursoConnectionPill" class="font-mono text-[10px] px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-300 hover:underline">Local Mode</button>
           </div>
         </div>
       </aside>
@@ -275,13 +286,13 @@
       <!-- Center Asset Table + Drag & Drop Zone -->
       <section id="explorerDropZone" ondragover="handleExplorerDragOver(event)" ondragleave="handleExplorerDragLeave(event)" ondrop="handleExplorerDrop(event)" class="flex-1 flex flex-col min-w-0 bg-raven-bg relative transition">
         <!-- Drag Overlay -->
-        <div id="explorerDropOverlay" class="hidden absolute inset-3 z-20 rounded-2xl border-2 border-dashed border-raven-red bg-zinc-950/90 flex flex-col items-center justify-center pointer-events-none">
-          <div class="text-sm font-bold text-white">Drop .STL or .OBJ CAD File to Register</div>
-          <div class="text-xs text-zinc-400 mt-1">Automatically parses real 3D geometry, bounding box &amp; syncs to Drive</div>
+        <div id="explorerDropOverlay" class="hidden absolute inset-3 z-20 rounded-2xl border-2 border-dashed border-raven-red bg-zinc-950/95 flex flex-col items-center justify-center pointer-events-none">
+          <div class="text-base font-bold text-white">Drop .STL or .OBJ CAD File to Register</div>
+          <div class="text-xs text-zinc-400 mt-1">Automatically parses 3D geometry, bounding box, mass &amp; syncs to Drive</div>
         </div>
 
         <!-- Toolbar & Breadcrumbs -->
-        <div class="p-3 sm:p-4 border-b border-raven-border flex flex-wrap items-center justify-between gap-2">
+        <div class="p-3 sm:p-4 border-b border-raven-border flex flex-wrap items-center justify-between gap-2 bg-raven-panel/40">
           <div id="breadcrumbBar" class="flex items-center flex-wrap gap-1.5 text-xs text-zinc-400">
             <span class="font-mono text-zinc-200 font-semibold" id="currentPathBreadcrumb">/</span>
             <span id="assetCountLabel" class="px-2 py-0.5 rounded-full bg-zinc-900 border border-raven-border text-[11px]">0 items</span>
@@ -322,23 +333,23 @@
       </section>
 
       <!-- Right Quick Preview Pane -->
-      <aside id="quickPreviewPane" class="w-full lg:w-80 bg-raven-panel border-t lg:border-t-0 lg:border-l border-raven-border p-4 flex flex-col gap-3 shrink-0">
+      <aside id="quickPreviewPane" class="w-full lg:w-80 bg-raven-panel border-t lg:border-t-0 lg:border-l border-raven-border p-4 flex flex-col gap-3 shrink-0 overflow-y-auto">
         <div class="flex items-center justify-between">
-          <span class="text-xs font-bold uppercase tracking-wider text-zinc-400">Quick Preview</span>
+          <span class="text-xs font-bold uppercase tracking-wider text-zinc-400">Quick Inspector</span>
           <span id="previewPartNoBadge" class="font-mono text-[11px] px-2 py-0.5 rounded bg-zinc-900 border border-raven-border text-zinc-300">—</span>
         </div>
 
         <!-- Mini 3D Canvas -->
-        <div id="miniCanvasContainer" class="relative w-full h-44 rounded-xl bg-zinc-950 border border-raven-border overflow-hidden">
+        <div id="miniCanvasContainer" class="relative w-full h-48 rounded-xl bg-zinc-950 border border-raven-border overflow-hidden blueprint-grid">
           <canvas id="miniThreeCanvas" class="w-full h-full block"></canvas>
-          <div id="miniCanvasOverlay" class="absolute bottom-2 left-2 right-2 flex items-center justify-between text-[10px] font-mono text-zinc-400 pointer-events-none">
+          <div id="miniCanvasOverlay" class="absolute bottom-2 left-2 right-2 flex items-center justify-between text-[10px] font-mono text-zinc-300 bg-zinc-950/75 px-2 py-1 rounded-lg pointer-events-none">
             <span id="previewBboxLabel">—</span>
             <span id="previewMassLabel">—</span>
           </div>
         </div>
 
         <div id="previewDetailsBody" class="space-y-3 text-xs">
-          <p class="text-zinc-500">Select any CAD part or assembly to inspect metadata, COTS status, or open the 3D workspace.</p>
+          <p class="text-zinc-500">Select any CAD part or assembly to inspect metadata, COTS status, or open the full 3D workspace.</p>
         </div>
       </aside>
     </main>
@@ -348,14 +359,14 @@
     <!-- ===================================================================== -->
     <main id="workspaceView" class="hidden flex-1 flex flex-col lg:flex-row overflow-hidden">
       <!-- Left Metadata, COTS & Revision History -->
-      <aside class="w-full lg:w-72 bg-raven-panel border-b lg:border-b-0 lg:border-r border-raven-border p-3.5 flex flex-col gap-4 overflow-y-auto shrink-0">
+      <aside class="w-full lg:w-76 bg-raven-panel border-b lg:border-b-0 lg:border-r border-raven-border p-3.5 flex flex-col gap-3.5 overflow-y-auto shrink-0">
         <div>
-          <button type="button" onclick="navigateToDesigns()" class="text-xs text-zinc-400 hover:text-white flex items-center gap-1 mb-2">
-            ← Back to Explorer
+          <button type="button" onclick="navigateToDesigns()" class="text-xs text-zinc-400 hover:text-white flex items-center gap-1 mb-2 font-medium">
+            ← Back to Designs Vault
           </button>
           <div class="flex items-center justify-between gap-2">
-            <span id="wsPartNumber" class="font-mono text-xs px-2 py-0.5 rounded bg-raven-red/15 text-raven-red border border-raven-red/30">PRT-0000</span>
-            <span id="wsLifecycleBadge" class="text-[11px] px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-200">In Work</span>
+            <span id="wsPartNumber" class="font-mono text-xs px-2 py-0.5 rounded bg-raven-red/15 text-raven-red border border-raven-red/30 font-bold">PRT-0000</span>
+            <span id="wsLifecycleBadge" class="text-[11px] px-2.5 py-0.5 rounded-full bg-zinc-800 text-zinc-200 font-medium">In Work</span>
           </div>
           <h2 id="wsFileName" class="text-sm font-bold text-white mt-1.5 break-all">Part.stl</h2>
           <p id="wsFilePath" class="text-[11px] font-mono text-zinc-400 mt-0.5">/</p>
@@ -377,65 +388,75 @@
               Check In v+1
             </button>
           </div>
-          <div class="pt-1 border-t border-raven-border/70 flex items-center gap-1.5">
-            <select id="wsLifecycleSelect" onchange="changeSelectedFileLifecycle(this.value)" class="flex-1 px-2 py-1.5 rounded-lg bg-zinc-950 border border-raven-border text-xs text-zinc-200">
+          <div class="pt-1.5 border-t border-raven-border/70 flex items-center gap-1.5">
+            <select id="wsLifecycleSelect" onchange="changeSelectedFileLifecycle(this.value)" class="flex-1 px-2.5 py-1.5 rounded-lg bg-zinc-950 border border-raven-border text-xs text-zinc-200">
               <option value="In Work">In Work</option>
               <option value="In Review">In Review</option>
               <option value="Released">Released</option>
             </select>
-            <button type="button" onclick="downloadActiveCadBinary()" class="px-2.5 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-xs text-zinc-200" title="Download CAD File">
+            <button type="button" onclick="downloadActiveCadBinary()" class="px-2.5 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-xs text-zinc-200 font-medium" title="Download CAD File">
               ↓ CAD
+            </button>
+            <button type="button" onclick="deleteSelectedCadFile()" class="px-2.5 py-1.5 rounded-lg bg-zinc-950 hover:bg-red-950 text-xs text-red-400 border border-red-900/40" title="Delete Asset">
+              🗑
             </button>
           </div>
         </div>
 
         <!-- Revision History -->
-        <div>
+        <div class="flex-1 flex flex-col min-h-0">
           <h3 class="text-[11px] font-bold uppercase tracking-wider text-zinc-400 mb-2">Revision History</h3>
-          <div id="wsRevisionList" class="space-y-2"></div>
+          <div id="wsRevisionList" class="space-y-2 overflow-y-auto"></div>
         </div>
       </aside>
 
       <!-- Center 3D Viewport -->
-      <section class="flex-1 flex flex-col relative bg-zinc-950 min-h-[400px]">
+      <section class="flex-1 flex flex-col relative bg-zinc-950 min-h-[420px]">
         <!-- Viewport Top Controls -->
         <div class="absolute top-3 left-3 right-3 z-10 flex flex-wrap items-center justify-between gap-2 pointer-events-none">
           <div class="flex flex-wrap items-center gap-1 bg-raven-panel/90 backdrop-blur border border-raven-border p-1 rounded-xl pointer-events-auto">
             <button id="modeShadedBtn" type="button" onclick="setRenderMode('shaded')" class="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-zinc-800 text-white">Shaded</button>
             <button id="modeWireframeBtn" type="button" onclick="setRenderMode('wireframe')" class="px-2.5 py-1 rounded-lg text-[11px] font-medium hover:bg-zinc-800 text-zinc-300">Wireframe</button>
             <button id="modeXrayBtn" type="button" onclick="setRenderMode('xray')" class="px-2.5 py-1 rounded-lg text-[11px] font-medium hover:bg-zinc-800 text-zinc-300">X-Ray</button>
+            <button id="bboxToggleBtn" type="button" onclick="toggleBoundingBoxHelper()" class="px-2.5 py-1 rounded-lg text-[11px] font-medium hover:bg-zinc-800 text-zinc-300">BBox</button>
             <button id="measureToolBtn" type="button" onclick="toggleMeasureMode()" class="px-2.5 py-1 rounded-lg text-[11px] font-medium hover:bg-zinc-800 text-sky-300 border border-transparent">📏 Measure</button>
-            <button type="button" onclick="resetViewportCamera()" class="px-2.5 py-1 rounded-lg text-[11px] font-medium hover:bg-zinc-800 text-zinc-400">Reset</button>
           </div>
 
-          <div class="flex items-center gap-2 bg-raven-panel/90 backdrop-blur border border-raven-border px-3 py-1.5 rounded-xl pointer-events-auto text-[11px]">
+          <!-- Camera Presets + Sliders -->
+          <div class="flex flex-wrap items-center gap-2 bg-raven-panel/90 backdrop-blur border border-raven-border px-2.5 py-1 rounded-xl pointer-events-auto text-[11px]">
+            <div class="flex items-center gap-1 border-r border-raven-border pr-2">
+              <button type="button" onclick="setCameraPreset('iso')" class="px-1.5 py-0.5 rounded hover:bg-zinc-800 text-zinc-300 font-mono">Iso</button>
+              <button type="button" onclick="setCameraPreset('front')" class="px-1.5 py-0.5 rounded hover:bg-zinc-800 text-zinc-300 font-mono">Front</button>
+              <button type="button" onclick="setCameraPreset('top')" class="px-1.5 py-0.5 rounded hover:bg-zinc-800 text-zinc-300 font-mono">Top</button>
+              <button type="button" onclick="setCameraPreset('right')" class="px-1.5 py-0.5 rounded hover:bg-zinc-800 text-zinc-300 font-mono">Right</button>
+            </div>
             <span class="text-zinc-400">Explode</span>
-            <input id="explodeSlider" type="range" min="0" max="1" step="0.05" value="0" oninput="updateExplodeFactor(parseFloat(this.value))" class="w-16 sm:w-20 accent-raven-red" />
-            <span class="text-zinc-400 ml-1">Section</span>
-            <input id="sectionSlider" type="range" min="-1.5" max="1.5" step="0.05" value="1.5" oninput="updateSectionPlane(parseFloat(this.value))" class="w-16 sm:w-20 accent-raven-red" />
+            <input id="explodeSlider" type="range" min="0" max="1" step="0.05" value="0" oninput="updateExplodeFactor(parseFloat(this.value))" class="w-14 sm:w-16 accent-raven-red" />
+            <span class="text-zinc-400">Section</span>
+            <input id="sectionSlider" type="range" min="-1.5" max="1.5" step="0.05" value="1.5" oninput="updateSectionPlane(parseFloat(this.value))" class="w-14 sm:w-16 accent-raven-red" />
           </div>
         </div>
 
         <!-- Live Measurement Readout Pill -->
-        <div id="measureReadoutPill" class="hidden absolute top-14 left-3 z-10 bg-sky-950/90 border border-sky-500/50 text-sky-200 px-3 py-1.5 rounded-xl text-xs font-mono flex items-center gap-2">
+        <div id="measureReadoutPill" class="hidden absolute top-14 left-3 z-10 bg-sky-950/95 border border-sky-500/50 text-sky-200 px-3 py-1.5 rounded-xl text-xs font-mono flex items-center gap-2 shadow-lg">
           <span id="measureReadoutText">Click two points on the 3D mesh to measure</span>
           <button type="button" onclick="clearMeasurements()" class="text-[10px] px-1.5 py-0.5 rounded bg-sky-500/20 hover:bg-sky-500/40">Clear</button>
         </div>
 
         <!-- Bottom Part Telemetry HUD -->
         <div class="absolute bottom-3 left-3 right-3 z-10 flex flex-wrap items-center justify-between gap-2 pointer-events-none text-[11px] font-mono">
-          <div class="bg-raven-panel/85 backdrop-blur border border-raven-border px-3 py-1 rounded-lg text-zinc-300">
-            BBox: <span id="wsHudBbox" class="text-white">—</span> • Mass: <span id="wsHudMass" class="text-white">—</span>
+          <div class="bg-raven-panel/90 backdrop-blur border border-raven-border px-3 py-1 rounded-lg text-zinc-300">
+            BBox: <span id="wsHudBbox" class="text-white font-semibold">—</span> • Mass: <span id="wsHudMass" class="text-white font-semibold">—</span>
           </div>
-          <div class="bg-raven-panel/85 backdrop-blur border border-raven-border px-3 py-1 rounded-lg text-zinc-400 hidden sm:block">
-            Drag: Orbit • Right-Drag: Pan • Scroll: Zoom
+          <div class="bg-raven-panel/90 backdrop-blur border border-raven-border px-3 py-1 rounded-lg text-zinc-400 hidden sm:block">
+            Left-Drag: Orbit • Right-Drag: Pan • Scroll: Zoom
           </div>
         </div>
 
         <!-- Diff Banner -->
-        <div id="diffModeBanner" class="hidden absolute bottom-12 left-1/2 -translate-x-1/2 z-10 bg-amber-950/90 border border-amber-500/50 px-4 py-2 rounded-xl flex items-center gap-3 text-xs">
-          <span>3D Diff: <strong id="diffBaseLabel">v1</strong> vs <strong id="diffTargetLabel">v2</strong></span>
-          <button type="button" onclick="exitDiffMode()" class="px-2 py-0.5 rounded bg-amber-500 text-black font-semibold">Exit Diff</button>
+        <div id="diffModeBanner" class="hidden absolute bottom-12 left-1/2 -translate-x-1/2 z-10 bg-amber-950/95 border border-amber-500/50 px-4 py-2 rounded-xl flex items-center gap-3 text-xs shadow-xl">
+          <span>3D Diff Overlay: <strong id="diffBaseLabel">v1</strong> vs <strong id="diffTargetLabel">v2</strong></span>
+          <button type="button" onclick="exitDiffMode()" class="px-2.5 py-0.5 rounded bg-amber-500 text-black font-bold">Exit Diff</button>
         </div>
 
         <div id="mainCanvasContainer" class="flex-1 w-full h-full">
@@ -444,11 +465,11 @@
       </section>
 
       <!-- Right Review Pins & BOM -->
-      <aside class="w-full lg:w-72 bg-raven-panel border-t lg:border-t-0 lg:border-l border-raven-border p-3.5 flex flex-col gap-4 overflow-y-auto shrink-0">
+      <aside class="w-full lg:w-76 bg-raven-panel border-t lg:border-t-0 lg:border-l border-raven-border p-3.5 flex flex-col gap-4 overflow-y-auto shrink-0">
         <div>
           <div class="flex items-center justify-between mb-2">
             <h3 class="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Bill of Materials</h3>
-            <button type="button" onclick="openAddBomItemPrompt()" class="text-[11px] text-raven-red hover:underline">+ Add Item</button>
+            <button type="button" onclick="openAddBomItemPrompt()" class="text-[11px] text-raven-red hover:underline font-semibold">+ Add Item</button>
           </div>
           <div id="wsBomList" class="space-y-1.5 text-xs"></div>
         </div>
@@ -458,7 +479,7 @@
           <div id="wsPinList" class="space-y-2 flex-1 overflow-y-auto mb-2"></div>
           <form onsubmit="handleAddReviewPin(event)" class="flex gap-1.5">
             <input id="newPinInput" type="text" required placeholder="Add review note..." class="flex-1 px-2.5 py-1.5 rounded-lg bg-zinc-900 border border-raven-border text-xs text-white focus:outline-none focus:border-raven-red" />
-            <button type="submit" class="px-3 py-1.5 rounded-lg bg-raven-red text-white text-xs font-semibold">Post</button>
+            <button type="submit" class="px-3 py-1.5 rounded-lg bg-raven-red hover:bg-raven-redHover text-white text-xs font-semibold">Post</button>
           </form>
         </div>
       </aside>
@@ -475,23 +496,23 @@
             <h2 class="text-sm font-bold text-white">Ready for Production</h2>
             <p class="text-[11px] text-zinc-400">Released custom parts (COTS excluded)</p>
           </div>
-          <span id="prodQueueBadge" class="font-mono text-xs px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">0</span>
+          <span id="prodQueueBadge" class="font-mono text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold">0</span>
         </div>
         <div id="productionQueueList" class="space-y-2 overflow-y-auto flex-1"></div>
       </aside>
 
       <!-- 8.5" x 11" Engineering Drawing Sheet & Controls -->
-      <section class="flex-1 flex flex-col bg-zinc-950 overflow-auto p-4 sm:p-6">
+      <section class="flex-1 flex flex-col bg-zinc-950 overflow-auto p-4 sm:p-6 blueprint-grid">
         <div class="max-w-4xl w-full mx-auto flex flex-wrap items-center justify-between gap-3 mb-4">
           <div>
             <h3 id="prodSheetHeading" class="text-base font-bold text-white">Select a Released Part</h3>
-            <p id="prodSheetSubheading" class="text-xs text-zinc-400">Auto-dimensioned 8.5" × 11" ANSI-A shop drawing sheet (Outer + Interior Feature Callouts)</p>
+            <p id="prodSheetSubheading" class="text-xs text-zinc-400">Multi-view 8.5" × 11" ANSI-A shop drawing sheet (Outer + Interior Feature Callouts)</p>
           </div>
           <div class="flex items-center gap-2">
             <button id="addCustomDimBtn" type="button" onclick="promptAddCustomDimension()" disabled class="px-3 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 disabled:opacity-40 text-zinc-200 text-xs font-medium transition">
               + Add Callout
             </button>
-            <button id="downloadProdPdfBtn" type="button" onclick="downloadSelectedProductionPdf()" disabled class="px-4 py-2 rounded-xl bg-raven-red hover:bg-raven-redHover disabled:opacity-40 text-white text-xs font-semibold shadow transition">
+            <button id="downloadProdPdfBtn" type="button" onclick="downloadSelectedProductionPdf()" disabled class="px-4 py-2 rounded-xl bg-raven-red hover:bg-raven-redHover disabled:opacity-40 text-white text-xs font-semibold shadow-lg shadow-raven-red/20 transition">
               Download 8.5" × 11" PDF
             </button>
           </div>
@@ -499,7 +520,7 @@
 
         <div id="productionDrawingPreviewHost" class="max-w-4xl w-full mx-auto bg-white text-slate-900 rounded-xl shadow-2xl p-4 sm:p-6 border border-zinc-300">
           <div class="py-16 text-center text-sm text-slate-500">
-            No custom released parts selected. Release a non-COTS part in the Designs tab to generate its shop drawing.
+            No custom released parts selected. Release a non-COTS part in the Designs Vault to generate its shop drawing.
           </div>
         </div>
       </section>
@@ -660,9 +681,14 @@
           <input id="driveFolderIdInput" type="text" placeholder="https://drive.google.com/drive/folders/1A2B3C..." class="w-full px-3 py-1.5 rounded-lg bg-zinc-950 border border-raven-border text-xs font-mono text-white" />
         </div>
         <div id="driveDiagnosticBox" class="hidden text-[11px] text-amber-300 bg-amber-950/60 border border-amber-700/60 rounded-lg p-2"></div>
-        <button type="button" onclick="saveAndAuthorizeGoogleDrive()" class="w-full py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold transition">
-          Authorize &amp; Sync Folder
-        </button>
+        <div class="flex gap-2">
+          <button type="button" onclick="saveAndAuthorizeGoogleDrive()" class="flex-1 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold transition">
+            Authorize &amp; Sync Folder
+          </button>
+          <button type="button" onclick="pullFromGoogleDriveManifest()" class="px-3 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-medium transition">
+            Pull Manifest
+          </button>
+        </div>
       </div>
 
       <!-- Turso Cloud SQL Settings -->
@@ -809,6 +835,7 @@
       diffBaseRev: null,
       measureMode: false,
       measurePoints: [],
+      showBboxHelper: false,
       users: JSON.parse(JSON.stringify(DEFAULT_SEED_STATE.users)),
       projects: JSON.parse(JSON.stringify(DEFAULT_SEED_STATE.projects)),
       folders: JSON.parse(JSON.stringify(DEFAULT_SEED_STATE.folders)),
@@ -1200,7 +1227,7 @@
     };
 
     // -------------------------------------------------------------------------
-    // GOOGLE DRIVE VAULT CLIENT (OAUTH2 + .REVISIONS/ ARCHIVE + MANIFEST)
+    // GOOGLE DRIVE VAULT CLIENT (OAUTH2 + .REVISIONS/ ARCHIVE + TWO-WAY MANIFEST)
     // -------------------------------------------------------------------------
     const GoogleDriveVault = {
       accessToken: sessionStorage.getItem('raven_drive_access_token') || null,
@@ -1214,7 +1241,7 @@
       async ensureAuthorized(forceConsent = false) {
         if (!forceConsent && this.accessToken) return this.accessToken;
         const clientId = (APP_STATE.cloudConfig.driveClientId || '').trim();
-        if (!clientId) throw new Error('Missing Google OAuth 2.0 Web Client ID.');
+        if (!clientId) throw new Error('Enter your Google OAuth 2.0 Web Client ID in Profile → Google Drive settings first.');
 
         for (let i = 0; i < 20 && !window.google?.accounts?.oauth2; i++) {
           await new Promise(r => setTimeout(r, 150));
@@ -1390,14 +1417,17 @@
           team: 'FRC 1310 Runnymede Robotics',
           updatedAt: new Date().toISOString(),
           projects: APP_STATE.projects,
+          folders: APP_STATE.folders,
           files: APP_STATE.files.map(f => ({
             id: f.id,
+            projectId: f.projectId,
             partNumber: f.partNumber,
             fileName: f.fileName,
             directoryPath: f.directoryPath,
             activeRev: f.activeRev,
             lifecycle: f.lifecycle,
-            isCots: Boolean(f.isCots)
+            isCots: Boolean(f.isCots),
+            revisions: f.revisions
           }))
         }, null, 2);
         await this.uploadMultipartFile(
@@ -1406,6 +1436,43 @@
           new Blob([manifestPayload], { type: 'application/json' }),
           existingId
         );
+      },
+
+      async pullManifestIntoState() {
+        const rootId = this.extractFolderId(APP_STATE.cloudConfig.driveFolderId);
+        if (!rootId) return false;
+        const manifestName = '_raven_workbench_manifest.json';
+        const q = `'${rootId}' in parents and name = '${manifestName}' and trashed = false`;
+        const searchRes = await this.driveFetch(
+          `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id)&supportsAllDrives=true&includeItemsFromAllDrives=true`
+        );
+        const hit = (await searchRes.json()).files?.[0];
+        if (!hit) return false;
+
+        const dlRes = await this.driveFetch(
+          `https://www.googleapis.com/drive/v3/files/${hit.id}?alt=media&supportsAllDrives=true`
+        );
+        const data = await dlRes.json();
+        if (Array.isArray(data.projects) && data.projects.length > 0) APP_STATE.projects = data.projects;
+        if (Array.isArray(data.folders) && data.folders.length > 0) APP_STATE.folders = data.folders;
+        if (Array.isArray(data.files) && data.files.length > 0) {
+          data.files.forEach(remoteFile => {
+            const idx = APP_STATE.files.findIndex(local => local.id === remoteFile.id || local.partNumber === remoteFile.partNumber);
+            if (idx >= 0) {
+              APP_STATE.files[idx] = { ...APP_STATE.files[idx], ...remoteFile };
+            } else {
+              APP_STATE.files.push({
+                bom: [],
+                pins: [],
+                customDimensions: [],
+                revisions: [],
+                ...remoteFile
+              });
+            }
+          });
+        }
+        LocalSqliteEngine.saveFromAppState();
+        return true;
       }
     };
 
@@ -1559,7 +1626,7 @@
         obj3d.traverse(child => {
           if (!child.isMesh || !child.geometry || !child.geometry.attributes?.position) return;
           const pos = child.geometry.attributes.position;
-          const step = Math.max(1, Math.floor(pos.count / 450));
+          const step = Math.max(1, Math.floor(pos.count / 500));
           for (let i = 0; i < pos.count; i += step) {
             const nx = size.x > 0 ? (pos.getX(i) - box.min.x) / size.x : 0.5;
             const ny = size.y > 0 ? (pos.getY(i) - box.min.y) / size.y : 0.5;
@@ -1574,7 +1641,7 @@
         return {
           bbox: `${wMm} x ${hMm} x ${dMm} mm`,
           massKg: estMassKg,
-          silhouetteJson: JSON.stringify({ wMm, hMm, dMm, pts: pts2d.slice(0, 450) })
+          silhouetteJson: JSON.stringify({ wMm, hMm, dMm, pts: pts2d.slice(0, 500) })
         };
       } catch (err) {
         console.warn('CAD metric extraction warning:', err);
@@ -1611,7 +1678,7 @@
         const circles = parsed.pts.map(p => {
           const cx = (x0 + (p[axU] ?? 0.5) * boxW).toFixed(1);
           const cy = (y0 + (1 - (p[axV] ?? 0.5)) * boxH).toFixed(1);
-          return `<circle cx="${cx}" cy="${cy}" r="1.4" fill="#1e293b" opacity="0.75" />`;
+          return `<circle cx="${cx}" cy="${cy}" r="1.4" fill="#1e293b" opacity="0.78" />`;
         }).join('');
         return `
           <rect x="${x0}" y="${y0}" width="${boxW}" height="${boxH}" fill="none" stroke="#94a3b8" stroke-width="0.9" stroke-dasharray="3 3" />
@@ -1726,7 +1793,7 @@
         dlBtn.disabled = true;
         addDimBtn.disabled = true;
         document.getElementById('prodSheetHeading').textContent = 'Select a Released Part';
-        host.innerHTML = `<div class="py-16 text-center text-sm text-slate-500">No custom released parts selected. Release a non-COTS part in the Designs tab to generate its shop drawing.</div>`;
+        host.innerHTML = `<div class="py-16 text-center text-sm text-slate-500">No custom released parts selected. Release a non-COTS part in the Designs Vault to generate its shop drawing.</div>`;
         return;
       }
 
@@ -1743,39 +1810,46 @@
               <div class="text-base font-black text-slate-900">${escapeHtml(f.partNumber)} — ${escapeHtml(f.fileName)}</div>
             </div>
             <div class="text-right font-mono text-xs">
-              <div>REV: <strong>v${f.activeRev}</strong> • SHEET 1 OF 1</div>
+              <div>REV: <strong>v${f.activeRev}</strong> • SHEET 1 OF 1 (ANSI-A)</div>
               <div>STOCK: <strong>${escapeHtml(dwg.material)}</strong> (${dwg.dIn}")</div>
             </div>
           </div>
 
-          <!-- Orthographic Projection SVG with Outer & Interior Feature Dimensions -->
+          <!-- Orthographic Front + Right Side Projection SVG with Outer & Interior Feature Dimensions -->
           <div class="bg-slate-50 border border-slate-300 rounded-lg p-2">
-            <svg viewBox="0 0 360 225" class="w-full h-auto">
+            <svg viewBox="0 0 430 225" class="w-full h-auto">
               <!-- Overall Width Dimension -->
-              <line x1="70" y1="22" x2="270" y2="22" stroke="#dc2626" stroke-width="1.2" />
-              <line x1="70" y1="16" x2="70" y2="42" stroke="#dc2626" stroke-width="1" />
-              <line x1="270" y1="16" x2="270" y2="42" stroke="#dc2626" stroke-width="1" />
-              <text x="170" y="17" text-anchor="middle" fill="#dc2626" font-size="9.5" font-family="monospace" font-weight="bold">${dwg.wIn}" (${dwg.wMm} mm)</text>
+              <line x1="55" y1="22" x2="255" y2="22" stroke="#dc2626" stroke-width="1.2" />
+              <line x1="55" y1="16" x2="55" y2="42" stroke="#dc2626" stroke-width="1" />
+              <line x1="255" y1="16" x2="255" y2="42" stroke="#dc2626" stroke-width="1" />
+              <text x="155" y="17" text-anchor="middle" fill="#dc2626" font-size="9.5" font-family="monospace" font-weight="bold">${dwg.wIn}" (${dwg.wMm} mm)</text>
 
               <!-- Overall Height Dimension -->
-              <line x1="305" y1="45" x2="305" y2="175" stroke="#dc2626" stroke-width="1.2" />
-              <line x1="274" y1="45" x2="312" y2="45" stroke="#dc2626" stroke-width="1" />
-              <line x1="274" y1="175" x2="312" y2="175" stroke="#dc2626" stroke-width="1" />
-              <text x="312" y="113" fill="#dc2626" font-size="9" font-family="monospace" font-weight="bold">${dwg.hIn}"</text>
+              <line x1="285" y1="45" x2="285" y2="175" stroke="#dc2626" stroke-width="1.2" />
+              <line x1="259" y1="45" x2="292" y2="45" stroke="#dc2626" stroke-width="1" />
+              <line x1="259" y1="175" x2="292" y2="175" stroke="#dc2626" stroke-width="1" />
+              <text x="292" y="113" fill="#dc2626" font-size="9" font-family="monospace" font-weight="bold">${dwg.hIn}"</text>
 
               <!-- Real Uploaded Model Silhouette or Parametric Profile -->
-              ${buildModelSilhouetteSvgMarkup(f, 70, 45, 200, 130)}
+              ${buildModelSilhouetteSvgMarkup(f, 55, 45, 200, 130)}
 
               <!-- Interior Feature Dimension Callout -->
-              <line x1="120" y1="110" x2="220" y2="110" stroke="#0284c7" stroke-width="1" stroke-dasharray="2 2" />
-              <text x="170" y="106" text-anchor="middle" fill="#0284c7" font-size="8" font-family="monospace" font-weight="bold">INT: ${dwg.pocketWIn}" × ${dwg.pocketHIn}"</text>
+              <line x1="105" y1="110" x2="205" y2="110" stroke="#0284c7" stroke-width="1" stroke-dasharray="2 2" />
+              <text x="155" y="106" text-anchor="middle" fill="#0284c7" font-size="8" font-family="monospace" font-weight="bold">INT: ${dwg.pocketWIn}" × ${dwg.pocketHIn}"</text>
 
               <!-- Corner Hole Callout -->
-              <circle cx="84" cy="59" r="3.5" fill="#ffffff" stroke="#0f172a" stroke-width="1.2" />
-              <circle cx="256" cy="59" r="3.5" fill="#ffffff" stroke="#0f172a" stroke-width="1.2" />
-              <circle cx="84" cy="161" r="3.5" fill="#ffffff" stroke="#0f172a" stroke-width="1.2" />
-              <circle cx="256" cy="161" r="3.5" fill="#ffffff" stroke="#0f172a" stroke-width="1.2" />
-              <text x="170" y="198" text-anchor="middle" fill="#0f172a" font-size="8.5" font-family="monospace">THICKNESS: ${dwg.dIn}" (${dwg.dMm} mm) • MASS: ${dwg.massKg} kg</text>
+              <circle cx="69" cy="59" r="3.5" fill="#ffffff" stroke="#0f172a" stroke-width="1.2" />
+              <circle cx="241" cy="59" r="3.5" fill="#ffffff" stroke="#0f172a" stroke-width="1.2" />
+              <circle cx="69" cy="161" r="3.5" fill="#ffffff" stroke="#0f172a" stroke-width="1.2" />
+              <circle cx="241" cy="161" r="3.5" fill="#ffffff" stroke="#0f172a" stroke-width="1.2" />
+
+              <!-- Right Edge Profile View -->
+              <rect x="355" y="45" width="22" height="130" fill="#e2e8f0" stroke="#0f172a" stroke-width="1.8" />
+              <line x1="355" y1="32" x2="377" y2="32" stroke="#dc2626" stroke-width="1.2" />
+              <text x="366" y="27" text-anchor="middle" fill="#dc2626" font-size="8.5" font-family="monospace" font-weight="bold">${dwg.dIn}"</text>
+              <text x="366" y="190" text-anchor="middle" fill="#475569" font-size="7.5" font-family="monospace">SIDE PROFILE</text>
+
+              <text x="155" y="198" text-anchor="middle" fill="#0f172a" font-size="8.5" font-family="monospace">THICKNESS: ${dwg.dIn}" (${dwg.dMm} mm) • MASS: ${dwg.massKg} kg</text>
             </svg>
           </div>
 
@@ -1814,13 +1888,17 @@
       doc.text(`FILE: ${f.fileName}   |   REV: v${f.activeRev}   |   MATERIAL: ${dwg.material}   |   MASS: ${dwg.massKg} kg`, 0.6, 7.6);
       doc.text(`OVERALL BBOX: ${dwg.wIn}" x ${dwg.hIn}" x ${dwg.dIn}" (${dwg.wMm} x ${dwg.hMm} x ${dwg.dMm} mm)`, 0.6, 7.9);
 
-      // Part Outline & Interior Pocket
-      const px = 1.6, py = 1.4, pw = 4.6, ph = 3.4;
+      // Front View Outline & Interior Pocket
+      const px = 1.2, py = 1.4, pw = 4.2, ph = 3.4;
       doc.setDrawColor(15, 23, 42);
       doc.setLineWidth(0.025);
       doc.rect(px, py, pw, ph);
       doc.setLineWidth(0.015);
       doc.rect(px + pw * 0.25, py + ph * 0.25, pw * 0.5, ph * 0.5);
+
+      // Side Profile View
+      doc.setLineWidth(0.02);
+      doc.rect(px + pw + 0.85, py, 0.35, ph);
 
       // Outer Dimension Callouts
       doc.setDrawColor(220, 38, 38);
@@ -1828,17 +1906,17 @@
       doc.line(px, py - 0.3, px + pw, py - 0.3);
       doc.text(`${dwg.wIn}" (${dwg.wMm} mm)`, px + pw / 2, py - 0.4, { align: 'center' });
 
-      doc.line(px + pw + 0.3, py, px + pw + 0.3, py + ph);
-      doc.text(`${dwg.hIn}"`, px + pw + 0.42, py + ph / 2);
+      doc.line(px + pw + 0.25, py, px + pw + 0.25, py + ph);
+      doc.text(`${dwg.hIn}"`, px + pw + 0.32, py + ph / 2);
 
       // Dimension Schedule Table on Right Side of Sheet
       doc.setTextColor(15, 23, 42);
       doc.setFont('helvetica', 'bold');
-      doc.text('DIMENSION SCHEDULE', 7.2, 1.4);
+      doc.text('DIMENSION SCHEDULE', 7.1, 1.4);
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(9);
       dwg.dimensions.forEach((d, i) => {
-        doc.text(`${d.id} (${d.label}): ${d.value}`, 7.2, 1.75 + i * 0.32);
+        doc.text(`${d.id} (${d.label}): ${d.value}`, 7.1, 1.75 + i * 0.32);
       });
 
       doc.save(`${f.partNumber}_v${f.activeRev}_Drawing.pdf`);
@@ -1855,8 +1933,11 @@
       const projFiles = APP_STATE.files.filter(f => f.projectId === APP_STATE.activeProjectId);
       const customCount = projFiles.filter(f => !f.isCots).length;
       const cotsCount = projFiles.filter(f => f.isCots).length;
+      const releasedCount = projFiles.filter(f => f.lifecycle === 'Released' && !f.isCots).length;
       const ratioEl = document.getElementById('vaultPartRatioPill');
       if (ratioEl) ratioEl.textContent = `${customCount} / ${cotsCount}`;
+      const relEl = document.getElementById('vaultReleasedRatioPill');
+      if (relEl) relEl.textContent = String(releasedCount);
     }
 
     function updateConnectionBadges() {
@@ -2046,7 +2127,7 @@
             <td class="py-3 px-4">
               <div class="flex items-center gap-2">
                 <span class="font-mono text-[11px] text-raven-red font-semibold">${escapeHtml(f.partNumber)}</span>
-                ${f.isCots ? `<span class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-sky-500/20 text-sky-300 border border-sky-500/40">COTS</span>` : ''}
+                ${f.isCots ? `<span class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-sky-500/20 text-sky-300 border border-sky-500/40 font-semibold">COTS</span>` : ''}
               </div>
               <div class="font-medium text-white mt-0.5">${escapeHtml(f.fileName)}</div>
             </td>
@@ -2142,6 +2223,18 @@
           : `${f.partNumber} moved back to In Work`,
         'success'
       );
+    }
+
+    function deleteSelectedCadFile() {
+      const f = APP_STATE.files.find(item => item.id === APP_STATE.selectedFileId);
+      if (!f) return;
+      APP_STATE.files = APP_STATE.files.filter(item => item.id !== f.id);
+      APP_STATE.selectedFileId = null;
+      LocalSqliteEngine.saveFromAppState();
+      TursoCloudSQL.pushAllFromState().catch(() => {});
+      updateProductionCountBadge();
+      navigateToDesigns();
+      showToast(`Deleted ${f.partNumber} (${f.fileName})`, 'info');
     }
 
     // -------------------------------------------------------------------------
@@ -2315,7 +2408,7 @@
     }
 
     // -------------------------------------------------------------------------
-    // WORKSPACE NAVIGATION & 3D VIEWPORT (THREE.JS + MEASURE + STL/OBJ)
+    // WORKSPACE NAVIGATION & 3D VIEWPORT (THREE.JS + MEASURE + BBOX + PRESETS)
     // -------------------------------------------------------------------------
     function switchWorkspaceTab(tab) {
       APP_STATE.activeTab = tab;
@@ -2324,11 +2417,11 @@
       document.getElementById('productionView').classList.toggle('hidden', tab !== 'production');
 
       document.getElementById('navDesignsBtn').className = tab !== 'production'
-        ? 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-raven-red text-white transition'
-        : 'px-3 py-1.5 rounded-lg text-xs font-semibold text-zinc-400 hover:text-white transition';
+        ? 'px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-raven-red text-white transition'
+        : 'px-3.5 py-1.5 rounded-lg text-xs font-semibold text-zinc-400 hover:text-white transition';
       document.getElementById('navProductionBtn').className = tab === 'production'
-        ? 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-raven-red text-white transition flex items-center gap-1.5'
-        : 'px-3 py-1.5 rounded-lg text-xs font-semibold text-zinc-400 hover:text-white transition flex items-center gap-1.5';
+        ? 'px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-raven-red text-white transition flex items-center gap-1.5'
+        : 'px-3.5 py-1.5 rounded-lg text-xs font-semibold text-zinc-400 hover:text-white transition flex items-center gap-1.5';
 
       if (tab === 'production') {
         renderProductionQueue();
@@ -2499,7 +2592,7 @@
     // -------------------------------------------------------------------------
     // THREE.JS VIEWPORTS (MAIN + MINI + 3D POINT-TO-POINT MEASUREMENT)
     // -------------------------------------------------------------------------
-    let mainScene, mainCamera, mainRenderer, mainControls, activeModelGroup = null, diffGhostGroup = null;
+    let mainScene, mainCamera, mainRenderer, mainControls, activeModelGroup = null, diffGhostGroup = null, activeBoxHelper = null;
     let miniScene, miniCamera, miniRenderer, miniModelGroup = null;
     let measureVisualGroup = null, activeScaleToMm = 1;
     const clipPlanes = [new THREE.Plane(new THREE.Vector3(-1, 0, 0), 1.5)];
@@ -2518,7 +2611,7 @@
         mainRenderer = new THREE.WebGLRenderer({ canvas: mainCanvas, antialias: true });
         mainRenderer.localClippingEnabled = true;
 
-        const grid = new THREE.GridHelper(6, 12, 0x27272f, 0x18181d);
+        const grid = new THREE.GridHelper(6, 12, 0x272730, 0x18181e);
         grid.position.y = -1.1;
         mainScene.add(grid);
 
@@ -2526,9 +2619,12 @@
         mainScene.add(measureVisualGroup);
 
         mainScene.add(new THREE.AmbientLight(0xffffff, 0.65));
-        const dirLight = new THREE.DirectionalLight(0xffffff, 0.9);
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.95);
         dirLight.position.set(4, 6, 5);
         mainScene.add(dirLight);
+        const rimLight = new THREE.DirectionalLight(0x93c5fd, 0.35);
+        rimLight.position.set(-4, -3, -4);
+        mainScene.add(rimLight);
 
         if (THREE.OrbitControls) {
           mainControls = new THREE.OrbitControls(mainCamera, mainCanvas);
@@ -2566,6 +2662,33 @@
         if (miniRenderer && miniScene && miniCamera) miniRenderer.render(miniScene, miniCamera);
       }
       animate();
+    }
+
+    function setCameraPreset(preset) {
+      if (!mainCamera) return;
+      const map = {
+        iso: [2.8, 2.2, 3.2],
+        front: [0, 0.1, 4.0],
+        top: [0, 4.2, 0.01],
+        right: [4.0, 0.1, 0]
+      };
+      const [x, y, z] = map[preset] || map.iso;
+      mainCamera.position.set(x, y, z);
+      if (mainControls) {
+        mainControls.target.set(0, 0, 0);
+        mainControls.update();
+      }
+    }
+
+    function toggleBoundingBoxHelper() {
+      APP_STATE.showBboxHelper = !APP_STATE.showBboxHelper;
+      const btn = document.getElementById('bboxToggleBtn');
+      if (btn) {
+        btn.className = APP_STATE.showBboxHelper
+          ? 'px-2.5 py-1 rounded-lg text-[11px] font-medium bg-zinc-800 text-amber-300'
+          : 'px-2.5 py-1 rounded-lg text-[11px] font-medium hover:bg-zinc-800 text-zinc-300';
+      }
+      if (activeBoxHelper) activeBoxHelper.visible = APP_STATE.showBboxHelper;
     }
 
     function toggleMeasureMode() {
@@ -2625,15 +2748,6 @@
         document.getElementById('measureReadoutText').textContent = `Distance: ${distMm} mm (${distIn}")`;
       } else {
         document.getElementById('measureReadoutText').textContent = 'Point 1 set — click second point...';
-      }
-    }
-
-    function resetViewportCamera() {
-      if (!mainCamera) return;
-      mainCamera.position.set(2.8, 2.2, 3.2);
-      if (mainControls) {
-        mainControls.target.set(0, 0, 0);
-        mainControls.update();
       }
     }
 
@@ -2775,12 +2889,19 @@
       clearMeasurements();
       const binaryBuf = await resolveBinaryMeshForRevision(file, revNum);
       if (activeModelGroup) mainScene.remove(activeModelGroup);
+      if (activeBoxHelper) {
+        mainScene.remove(activeBoxHelper);
+        activeBoxHelper = null;
+      }
       if (diffGhostGroup) {
         mainScene.remove(diffGhostGroup);
         diffGhostGroup = null;
       }
       activeModelGroup = await buildParametricCadGroup(file, revNum, false, binaryBuf);
       mainScene.add(activeModelGroup);
+      activeBoxHelper = new THREE.BoxHelper(activeModelGroup, 0xfbbf24);
+      activeBoxHelper.visible = APP_STATE.showBboxHelper;
+      mainScene.add(activeBoxHelper);
       applyRenderModeToGroup(activeModelGroup, APP_STATE.renderMode);
     }
 
@@ -2902,6 +3023,13 @@
       const diagBox = document.getElementById('driveDiagnosticBox');
       diagBox.classList.add('hidden');
 
+      if (!clientId) {
+        diagBox.textContent = 'Paste your Google Cloud OAuth 2.0 Web Client ID above before authorizing.';
+        diagBox.classList.remove('hidden');
+        document.getElementById('driveClientIdInput').focus();
+        return;
+      }
+
       APP_STATE.cloudConfig.driveClientId = clientId;
       APP_STATE.cloudConfig.driveFolderId = folderId;
       localStorage.setItem('raven_drive_client_id', clientId);
@@ -2911,9 +3039,14 @@
       try {
         await GoogleDriveVault.ensureAuthorized(true);
         const folderMeta = await GoogleDriveVault.verifyRootFolder();
+        await GoogleDriveVault.pullManifestIntoState();
         await GoogleDriveVault.syncManifestJson();
         document.getElementById('driveModalStatus').textContent = `Linked: ${folderMeta.name}`;
         updateConnectionBadges();
+        renderProjectSelector();
+        renderFolderTree();
+        renderFileExplorer();
+        updateProductionCountBadge();
         await TursoCloudSQL.pushAllFromState().catch(() => {});
         showToast(`Connected to Drive folder "${folderMeta.name}"`, 'success');
       } catch (err) {
@@ -2921,6 +3054,20 @@
         diagBox.classList.remove('hidden');
         document.getElementById('driveModalStatus').textContent = 'Auth Error';
         showToast('Google Drive authorization failed — check details in modal.', 'error');
+      }
+    }
+
+    async function pullFromGoogleDriveManifest() {
+      try {
+        await GoogleDriveVault.ensureAuthorized(false);
+        const pulled = await GoogleDriveVault.pullManifestIntoState();
+        renderProjectSelector();
+        renderFolderTree();
+        renderFileExplorer();
+        updateProductionCountBadge();
+        showToast(pulled ? 'Pulled latest CAD manifest from Google Drive' : 'No manifest found yet in Drive folder', 'success');
+      } catch (err) {
+        showToast(err.message, 'error');
       }
     }
 
@@ -2953,13 +3100,23 @@
       const icon = document.getElementById('syncSpinnerIcon');
       if (icon) icon.classList.add('animate-spin');
       try {
-        if (APP_STATE.cloudConfig.tursoUrl && APP_STATE.cloudConfig.tursoToken) {
+        const hasTurso = Boolean((APP_STATE.cloudConfig.tursoUrl || '').trim() && (APP_STATE.cloudConfig.tursoToken || '').trim());
+        const hasDrive = Boolean((APP_STATE.cloudConfig.driveClientId || '').trim() && (APP_STATE.cloudConfig.driveFolderId || '').trim());
+
+        if (!hasTurso && !hasDrive) {
+          openProfileModal();
+          showToast('Configure Turso SQL or Google Drive in your profile to enable cloud sync.', 'info');
+          return;
+        }
+
+        if (hasTurso) {
           await TursoCloudSQL.pullIntoState();
           await TursoCloudSQL.pushAllFromState();
         }
-        if (APP_STATE.cloudConfig.driveClientId && APP_STATE.cloudConfig.driveFolderId) {
+        if (hasDrive) {
           await GoogleDriveVault.ensureAuthorized(false);
           await GoogleDriveVault.verifyRootFolder();
+          await GoogleDriveVault.pullManifestIntoState();
           await GoogleDriveVault.syncManifestJson();
         }
         updateConnectionBadges();
