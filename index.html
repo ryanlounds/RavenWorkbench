@@ -2454,16 +2454,21 @@
       },
 
       async ensureFolder(name, parentId) {
-        const cacheKey = `${parentId}::${name}`;
+        const cleanParentId = this.extractFolderId(parentId);
+        const cacheKey = `${cleanParentId}::${name}`;
         if (this.folderCache[cacheKey]) return this.folderCache[cacheKey];
-        const q = encodeURIComponent(`name='${name.replace(/'/g, "\\'")}' and '${parentId}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`);
+        const q = encodeURIComponent(`name='${name.replace(/'/g, "\\'")}' and '${cleanParentId}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`);
         const searchResp = await fetch(
           `https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)&supportsAllDrives=true&includeItemsFromAllDrives=true`,
           { headers: { Authorization: `Bearer ${APP_STATE.drive.accessToken}` } }
         );
         if (!searchResp.ok) {
-          const errTxt = await searchResp.text().catch(() => '');
-          throw new Error(`Drive folder lookup failed (${searchResp.status}): ${errTxt}`);
+          let errMsg = searchResp.statusText;
+          try {
+            const errJson = await searchResp.json();
+            errMsg = errJson?.error?.message || errMsg;
+          } catch (_) {}
+          throw new Error(`Drive lookup failed (${searchResp.status}): ${errMsg}`);
         }
         const searchData = await searchResp.json();
         if (searchData.files && searchData.files.length > 0) {
@@ -2479,21 +2484,52 @@
           body: JSON.stringify({
             name,
             mimeType: 'application/vnd.google-apps.folder',
-            parents: [parentId]
+            parents: [cleanParentId]
           })
         });
         if (!createResp.ok) {
-          const errTxt = await createResp.text().catch(() => '');
-          throw new Error(`Drive folder create failed (${createResp.status}): ${errTxt}`);
+          let errMsg = createResp.statusText;
+          try {
+            const errJson = await createResp.json();
+            errMsg = errJson?.error?.message || errMsg;
+          } catch (_) {}
+          throw new Error(`Drive folder create failed (${createResp.status}): ${errMsg}`);
         }
         const created = await createResp.json();
         this.folderCache[cacheKey] = created.id;
         return created.id;
       },
 
+      async verifyRootFolderAccess(rawRootId) {
+        const rootId = this.extractFolderId(rawRootId);
+        if (!rootId) throw new Error('Target Google Drive Folder ID is empty.');
+        const resp = await fetch(
+          `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(rootId)}?fields=id,name,mimeType,trashed&supportsAllDrives=true`,
+          { headers: { Authorization: `Bearer ${APP_STATE.drive.accessToken}` } }
+        );
+        if (!resp.ok) {
+          let errMsg = resp.statusText;
+          try {
+            const errJson = await resp.json();
+            errMsg = errJson?.error?.message || errMsg;
+          } catch (_) {}
+          if (resp.status === 404) {
+            throw new Error(`Folder ID "${rootId}" not found or not shared with your signed-in Google account.`);
+          }
+          if (resp.status === 403) {
+            throw new Error(`Google Drive API access denied (${errMsg}). Ensure Google Drive API is enabled in Google Cloud Console.`);
+          }
+          throw new Error(`Root folder verification failed (${resp.status}): ${errMsg}`);
+        }
+        const meta = await resp.json();
+        if (meta.trashed) throw new Error(`Target Google Drive folder "${meta.name}" is in Trash.`);
+        return meta;
+      },
+
       async resolveDirectoryFolderId(projectCode, directoryPath) {
         const rootId = this.extractFolderId(APP_STATE.drive.folderId);
         if (!rootId || !APP_STATE.drive.accessToken) return null;
+        await this.verifyRootFolderAccess(rootId);
         let currentParent = rootId;
         const segments = [projectCode, ...(directoryPath ? directoryPath.split('/') : [])].filter(Boolean);
         for (const seg of segments) {
