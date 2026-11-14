@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Raven Workbench</title>
+  <title>Raven Workbench - FRC 1310 Cloud CAD PDM</title>
 
   <!-- Google Fonts: Roboto & Roboto Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -2260,11 +2260,69 @@
     }
 
     // -------------------------------------------------------------------------
-    // GOOGLE DRIVE V3 SILENT AUTH & ARCHIVE VAULT ENGINE
+    // INDEXEDDB BINARY MESH VAULT (PERSISTS BINARY .STL / .OBJ LOCALLY)
+    // -------------------------------------------------------------------------
+    const LocalMeshVault = {
+      DB_NAME: 'raven_workbench_meshes_v1',
+      STORE_NAME: 'cad_binaries',
+      memCache: {},
+
+      openDb() {
+        return new Promise((resolve, reject) => {
+          if (!window.indexedDB) return reject(new Error('IndexedDB unavailable'));
+          const req = indexedDB.open(this.DB_NAME, 1);
+          req.onupgradeneeded = () => {
+            const db = req.result;
+            if (!db.objectStoreNames.contains(this.STORE_NAME)) {
+              db.createObjectStore(this.STORE_NAME);
+            }
+          };
+          req.onsuccess = () => resolve(req.result);
+          req.onerror = () => reject(req.error);
+        });
+      },
+
+      async putBinary(key, arrayBuffer) {
+        if (!key || !arrayBuffer) return;
+        this.memCache[key] = arrayBuffer;
+        try {
+          const db = await this.openDb();
+          await new Promise((resolve, reject) => {
+            const tx = db.transaction(this.STORE_NAME, 'readwrite');
+            tx.objectStore(this.STORE_NAME).put(arrayBuffer, key);
+            tx.oncomplete = () => resolve();
+            tx.onerror = () => reject(tx.error);
+          });
+        } catch (_) {}
+      },
+
+      async getBinary(key) {
+        if (!key) return null;
+        if (this.memCache[key]) return this.memCache[key];
+        try {
+          const db = await this.openDb();
+          const buf = await new Promise((resolve, reject) => {
+            const tx = db.transaction(this.STORE_NAME, 'readonly');
+            const req = tx.objectStore(this.STORE_NAME).get(key);
+            req.onsuccess = () => resolve(req.result || null);
+            req.onerror = () => reject(req.error);
+          });
+          if (buf) this.memCache[key] = buf;
+          return buf;
+        } catch (_) {
+          return null;
+        }
+      }
+    };
+
+    // -------------------------------------------------------------------------
+    // GOOGLE DRIVE V3 OAUTH & BINARY CAD ARCHIVE VAULT ENGINE
     // -------------------------------------------------------------------------
     const GoogleDriveVault = {
       tokenClient: null,
       folderCache: {},
+      tokenExpiresAt: 0,
+      lastAuthError: '',
 
       extractFolderId(raw) {
         const clean = (raw || '').trim();
@@ -2280,42 +2338,139 @@
         return origin.startsWith('https://') || origin.startsWith('http://localhost') || origin.startsWith('http://127.0.0.1');
       },
 
-      async autoBootstrapOnLogin() {
-        if (!APP_STATE.drive.clientId || !APP_STATE.drive.folderId) return;
-        if (!this.isOriginValidForGoogleOAuth()) return;
-        if (!window.google || !google.accounts || !google.accounts.oauth2) return;
+      async waitForGisLibrary(timeoutMs = 6000) {
+        const start = Date.now();
+        while (Date.now() - start < timeoutMs) {
+          if (window.google && google.accounts && google.accounts.oauth2) return true;
+          await new Promise(r => setTimeout(r, 150));
+        }
+        return Boolean(window.google && google.accounts && google.accounts.oauth2);
+      },
 
+      restoreSessionToken() {
         try {
-          this.tokenClient = google.accounts.oauth2.initTokenClient({
-            client_id: APP_STATE.drive.clientId.trim(),
-            scope: 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive',
-            callback: async (tokenResponse) => {
-              if (tokenResponse && tokenResponse.access_token) {
-                APP_STATE.drive.accessToken = tokenResponse.access_token;
-                APP_STATE.drive.connected = true;
-                APP_STATE.drive.lastSync = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                await this.syncManifest();
-              }
-            }
-          });
-          this.tokenClient.requestAccessToken({ prompt: '' });
+          const savedToken = sessionStorage.getItem('raven_drive_access_token');
+          const savedExp = Number(sessionStorage.getItem('raven_drive_token_exp') || 0);
+          const savedClient = sessionStorage.getItem('raven_drive_client_id') || '';
+          if (savedToken && savedExp > Date.now() + 60000 && savedClient === (APP_STATE.drive.clientId || '').trim()) {
+            APP_STATE.drive.accessToken = savedToken;
+            APP_STATE.drive.connected = true;
+            this.tokenExpiresAt = savedExp;
+            return true;
+          }
         } catch (_) {}
+        return false;
+      },
+
+      persistSessionToken(accessToken, expiresInSec = 3500) {
+        const exp = Date.now() + Math.max(300, Number(expiresInSec) - 120) * 1000;
+        APP_STATE.drive.accessToken = accessToken;
+        APP_STATE.drive.connected = true;
+        this.tokenExpiresAt = exp;
+        this.lastAuthError = '';
+        try {
+          sessionStorage.setItem('raven_drive_access_token', accessToken);
+          sessionStorage.setItem('raven_drive_token_exp', String(exp));
+          sessionStorage.setItem('raven_drive_client_id', (APP_STATE.drive.clientId || '').trim());
+        } catch (_) {}
+      },
+
+      hasValidToken() {
+        if (APP_STATE.drive.connected && APP_STATE.drive.accessToken && this.tokenExpiresAt > Date.now() + 30000) {
+          return true;
+        }
+        return this.restoreSessionToken();
+      },
+
+      async ensureAuthorized({ interactive = false } = {}) {
+        if (!APP_STATE.drive.clientId || !APP_STATE.drive.folderId) {
+          this.lastAuthError = 'Google Drive Client ID or Folder ID not configured.';
+          return false;
+        }
+        if (this.hasValidToken()) return true;
+        if (!this.isOriginValidForGoogleOAuth()) {
+          this.lastAuthError = 'Google OAuth requires an HTTPS or localhost URL.';
+          return false;
+        }
+
+        const gisReady = await this.waitForGisLibrary(6000);
+        if (!gisReady) {
+          this.lastAuthError = 'Google Identity Services library did not finish loading.';
+          return false;
+        }
+
+        const requestTokenWithPrompt = (promptMode) => new Promise((resolve) => {
+          let settled = false;
+          const finish = (ok) => {
+            if (!settled) {
+              settled = true;
+              resolve(ok);
+            }
+          };
+
+          try {
+            this.tokenClient = google.accounts.oauth2.initTokenClient({
+              client_id: APP_STATE.drive.clientId.trim(),
+              scope: 'https://www.googleapis.com/auth/drive',
+              callback: (tokenResponse) => {
+                if (tokenResponse && tokenResponse.access_token) {
+                  this.persistSessionToken(tokenResponse.access_token, tokenResponse.expires_in || 3500);
+                  APP_STATE.drive.lastSync = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                  finish(true);
+                } else {
+                  this.lastAuthError = tokenResponse?.error_description || tokenResponse?.error || 'No access token returned.';
+                  finish(false);
+                }
+              },
+              error_callback: (err) => {
+                this.lastAuthError = err?.message || err?.type || 'Google OAuth popup closed or blocked.';
+                finish(false);
+              }
+            });
+            this.tokenClient.requestAccessToken({ prompt: promptMode });
+            setTimeout(() => finish(false), interactive ? 45000 : 6000);
+          } catch (err) {
+            this.lastAuthError = err.message;
+            finish(false);
+          }
+        });
+
+        // Try silent token refresh first
+        const silentOk = await requestTokenWithPrompt('');
+        if (silentOk) return true;
+
+        // If triggered by a user click (Sync, Check-In, New CAD, Authorize), open account/consent prompt
+        if (interactive) {
+          return await requestTokenWithPrompt('select_account');
+        }
+        return false;
+      },
+
+      async autoBootstrapOnLogin() {
+        const ok = await this.ensureAuthorized({ interactive: false });
+        if (ok) {
+          await this.syncManifest();
+        }
       },
 
       async ensureFolder(name, parentId) {
         const cacheKey = `${parentId}::${name}`;
         if (this.folderCache[cacheKey]) return this.folderCache[cacheKey];
         const q = encodeURIComponent(`name='${name.replace(/'/g, "\\'")}' and '${parentId}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`);
-        const searchResp = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)`, {
-          headers: { Authorization: `Bearer ${APP_STATE.drive.accessToken}` }
-        });
-        if (!searchResp.ok) throw new Error('Drive folder lookup failed');
+        const searchResp = await fetch(
+          `https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)&supportsAllDrives=true&includeItemsFromAllDrives=true`,
+          { headers: { Authorization: `Bearer ${APP_STATE.drive.accessToken}` } }
+        );
+        if (!searchResp.ok) {
+          const errTxt = await searchResp.text().catch(() => '');
+          throw new Error(`Drive folder lookup failed (${searchResp.status}): ${errTxt}`);
+        }
         const searchData = await searchResp.json();
         if (searchData.files && searchData.files.length > 0) {
           this.folderCache[cacheKey] = searchData.files[0].id;
           return searchData.files[0].id;
         }
-        const createResp = await fetch('https://www.googleapis.com/drive/v3/files', {
+        const createResp = await fetch('https://www.googleapis.com/drive/v3/files?supportsAllDrives=true', {
           method: 'POST',
           headers: {
             Authorization: `Bearer ${APP_STATE.drive.accessToken}`,
@@ -2327,7 +2482,10 @@
             parents: [parentId]
           })
         });
-        if (!createResp.ok) throw new Error('Drive folder create failed');
+        if (!createResp.ok) {
+          const errTxt = await createResp.text().catch(() => '');
+          throw new Error(`Drive folder create failed (${createResp.status}): ${errTxt}`);
+        }
         const created = await createResp.json();
         this.folderCache[cacheKey] = created.id;
         return created.id;
@@ -2344,63 +2502,120 @@
         return currentParent;
       },
 
-      async archiveSupersededAndUploadNew(projectCode, directoryPath, canonicalFileName, prevRevNum, contentBlobOrText) {
-        if (!APP_STATE.drive.connected || !APP_STATE.drive.accessToken) return false;
+      async archiveSupersededAndUploadNew(projectCode, directoryPath, canonicalFileName, prevRevNum, binaryPayloadOrText, interactiveAuth = true) {
+        const authorized = await this.ensureAuthorized({ interactive: interactiveAuth });
+        if (!authorized) return false;
+
         try {
           const dirFolderId = await this.resolveDirectoryFolderId(projectCode, directoryPath);
           if (!dirFolderId) return false;
 
-          // If an active file with canonicalFileName exists, rename it to _vN and move to .revisions/
-          if (prevRevNum && prevRevNum >= 1) {
-            const q = encodeURIComponent(`name='${canonicalFileName.replace(/'/g, "\\'")}' and '${dirFolderId}' in parents and trashed=false`);
-            const existingResp = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)`, {
-              headers: { Authorization: `Bearer ${APP_STATE.drive.accessToken}` }
-            });
-            const existingData = await existingResp.json();
-            if (existingData.files && existingData.files.length > 0) {
-              const oldFileId = existingData.files[0].id;
-              const revFolderId = await this.ensureFolder('.revisions', dirFolderId);
-              const archivedName = buildVersionedFileName(canonicalFileName, prevRevNum);
-              await fetch(`https://www.googleapis.com/drive/v3/files/${oldFileId}?addParents=${revFolderId}&removeParents=${dirFolderId}`, {
+          // If an active file with canonicalFileName exists, rename it to _vN and move into hidden .revisions/
+          const q = encodeURIComponent(`name='${canonicalFileName.replace(/'/g, "\\'")}' and '${dirFolderId}' in parents and trashed=false`);
+          const existingResp = await fetch(
+            `https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)&supportsAllDrives=true&includeItemsFromAllDrives=true`,
+            { headers: { Authorization: `Bearer ${APP_STATE.drive.accessToken}` } }
+          );
+          const existingData = await existingResp.json();
+          if (existingData.files && existingData.files.length > 0) {
+            const oldFileId = existingData.files[0].id;
+            const archiveRev = prevRevNum && prevRevNum >= 1 ? prevRevNum : 1;
+            const revFolderId = await this.ensureFolder('.revisions', dirFolderId);
+            const archivedName = buildVersionedFileName(canonicalFileName, archiveRev);
+            await fetch(
+              `https://www.googleapis.com/drive/v3/files/${oldFileId}?addParents=${revFolderId}&removeParents=${dirFolderId}&supportsAllDrives=true`,
+              {
                 method: 'PATCH',
                 headers: {
                   Authorization: `Bearer ${APP_STATE.drive.accessToken}`,
                   'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({ name: archivedName })
-              });
-            }
+              }
+            );
           }
 
-          // Upload new active revision with canonical original name
+          // Build binary-safe multipart Blob so .stl / .sldprt / .sldasm / .step bytes are never corrupted
           const metadata = { name: canonicalFileName, parents: [dirFolderId] };
           const boundary = 'raven_pdm_boundary_' + Date.now();
-          const bodyContent = typeof contentBlobOrText === 'string'
-            ? contentBlobOrText
-            : `Raven Workbench PDM CAD Revision\nFile: ${canonicalFileName}\nProject: ${projectCode}\nTimestamp: ${new Date().toISOString()}`;
-          const multipartBody =
-            `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n` +
-            `${JSON.stringify(metadata)}\r\n` +
-            `--${boundary}\r\nContent-Type: application/octet-stream\r\n\r\n` +
-            `${bodyContent}\r\n--${boundary}--`;
+          const payloadPart = binaryPayloadOrText instanceof Blob || binaryPayloadOrText instanceof ArrayBuffer || binaryPayloadOrText instanceof Uint8Array
+            ? binaryPayloadOrText
+            : typeof binaryPayloadOrText === 'string' && binaryPayloadOrText.length > 0
+            ? binaryPayloadOrText
+            : `Raven Workbench PDM CAD Revision\nFile: ${canonicalFileName}\nProject: ${projectCode}\nTimestamp: ${new Date().toISOString()}\n`;
 
-          await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
-            method: 'POST',
-            headers: {
-              Authorization: `Bearer ${APP_STATE.drive.accessToken}`,
-              'Content-Type': `multipart/related; boundary=${boundary}`
-            },
-            body: multipartBody
-          });
-          return true;
+          const multipartBlob = new Blob([
+            `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n`,
+            JSON.stringify(metadata),
+            `\r\n--${boundary}\r\nContent-Type: application/octet-stream\r\n\r\n`,
+            payloadPart,
+            `\r\n--${boundary}--`
+          ], { type: `multipart/related; boundary=${boundary}` });
+
+          const uploadResp = await fetch(
+            'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&supportsAllDrives=true&fields=id,name',
+            {
+              method: 'POST',
+              headers: {
+                Authorization: `Bearer ${APP_STATE.drive.accessToken}`,
+                'Content-Type': `multipart/related; boundary=${boundary}`
+              },
+              body: multipartBlob
+            }
+          );
+
+          if (!uploadResp.ok) {
+            const errTxt = await uploadResp.text().catch(() => '');
+            throw new Error(`Drive upload failed (${uploadResp.status}): ${errTxt}`);
+          }
+          const uploadedMeta = await uploadResp.json();
+          APP_STATE.drive.lastSync = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          return uploadedMeta.id || true;
         } catch (err) {
           console.warn('Google Drive archive/upload warning:', err);
+          showToast(`Google Drive upload warning: ${err.message}`, 'warning');
           return false;
         }
       },
 
+      async downloadBinaryFromDrive(projectCode, directoryPath, canonicalFileName, revNum, isLatest) {
+        const authorized = await this.ensureAuthorized({ interactive: true });
+        if (!authorized) return null;
+
+        try {
+          const dirFolderId = await this.resolveDirectoryFolderId(projectCode, directoryPath);
+          if (!dirFolderId) return null;
+
+          let targetFolderId = dirFolderId;
+          let targetName = canonicalFileName;
+          if (!isLatest) {
+            targetFolderId = await this.ensureFolder('.revisions', dirFolderId);
+            targetName = buildVersionedFileName(canonicalFileName, revNum);
+          }
+
+          const q = encodeURIComponent(`name='${targetName.replace(/'/g, "\\'")}' and '${targetFolderId}' in parents and trashed=false`);
+          const searchResp = await fetch(
+            `https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)&supportsAllDrives=true&includeItemsFromAllDrives=true`,
+            { headers: { Authorization: `Bearer ${APP_STATE.drive.accessToken}` } }
+          );
+          const searchData = await searchResp.json();
+          if (!searchData.files || searchData.files.length === 0) return null;
+
+          const fileId = searchData.files[0].id;
+          const mediaResp = await fetch(
+            `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&supportsAllDrives=true`,
+            { headers: { Authorization: `Bearer ${APP_STATE.drive.accessToken}` } }
+          );
+          if (!mediaResp.ok) return null;
+          return await mediaResp.arrayBuffer();
+        } catch (err) {
+          console.warn('Google Drive download warning:', err);
+          return null;
+        }
+      },
+
       async syncManifest() {
-        if (!APP_STATE.drive.connected || !APP_STATE.drive.accessToken) return false;
+        if (!this.hasValidToken()) return false;
         try {
           const rootId = this.extractFolderId(APP_STATE.drive.folderId);
           if (!rootId) return false;
@@ -2419,12 +2634,13 @@
           }, null, 2);
 
           const q = encodeURIComponent(`name='_raven_workbench_manifest.json' and '${rootId}' in parents and trashed=false`);
-          const findResp = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id)`, {
-            headers: { Authorization: `Bearer ${APP_STATE.drive.accessToken}` }
-          });
+          const findResp = await fetch(
+            `https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id)&supportsAllDrives=true&includeItemsFromAllDrives=true`,
+            { headers: { Authorization: `Bearer ${APP_STATE.drive.accessToken}` } }
+          );
           const findData = await findResp.json();
           if (findData.files && findData.files.length > 0) {
-            await fetch(`https://www.googleapis.com/upload/drive/v3/files/${findData.files[0].id}?uploadType=media`, {
+            await fetch(`https://www.googleapis.com/upload/drive/v3/files/${findData.files[0].id}?uploadType=media&supportsAllDrives=true`, {
               method: 'PATCH',
               headers: {
                 Authorization: `Bearer ${APP_STATE.drive.accessToken}`,
@@ -2439,7 +2655,7 @@
               `${JSON.stringify({ name: '_raven_workbench_manifest.json', parents: [rootId] })}\r\n` +
               `--${boundary}\r\nContent-Type: application/json\r\n\r\n` +
               `${manifestPayload}\r\n--${boundary}--`;
-            await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+            await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&supportsAllDrives=true', {
               method: 'POST',
               headers: {
                 Authorization: `Bearer ${APP_STATE.drive.accessToken}`,
@@ -2456,32 +2672,41 @@
         }
       },
 
-      async verifyAllFilesSynced() {
+      async verifyAllFilesSynced(interactive = true) {
         if (!APP_STATE.drive.clientId || !APP_STATE.drive.folderId) {
           return { synced: false, reason: 'Google Drive Client ID / Folder ID not configured yet.' };
         }
-        if (!APP_STATE.drive.connected || !APP_STATE.drive.accessToken) {
-          return { synced: false, reason: 'Drive session awaiting OAuth token (configured in Turso).' };
+        const authorized = await this.ensureAuthorized({ interactive });
+        if (!authorized) {
+          return { synced: false, reason: this.lastAuthError || 'Google Drive OAuth authorization required.' };
         }
         try {
+          let syncedCount = 0;
           for (const proj of APP_STATE.projects) {
+            // Ensure all configured project directories exist in Google Drive
+            for (const dir of (proj.directories || [])) {
+              await this.resolveDirectoryFolderId(proj.code, dir);
+            }
             const projFiles = APP_STATE.files.filter(f => f.projectId === proj.id);
             for (const f of projFiles) {
               const dirFolderId = await this.resolveDirectoryFolderId(proj.code, f.directoryPath);
               if (dirFolderId) {
                 const q = encodeURIComponent(`name='${f.fileName.replace(/'/g, "\\'")}' and '${dirFolderId}' in parents and trashed=false`);
-                const r = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id)`, {
-                  headers: { Authorization: `Bearer ${APP_STATE.drive.accessToken}` }
-                });
+                const r = await fetch(
+                  `https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id)&supportsAllDrives=true&includeItemsFromAllDrives=true`,
+                  { headers: { Authorization: `Bearer ${APP_STATE.drive.accessToken}` } }
+                );
                 const d = await r.json();
                 if (!d.files || d.files.length === 0) {
-                  await this.archiveSupersededAndUploadNew(proj.code, f.directoryPath, f.fileName, 0, null);
+                  const cachedBin = await LocalMeshVault.getBinary(`${f.id}-v${f.activeRev}`);
+                  await this.archiveSupersededAndUploadNew(proj.code, f.directoryPath, f.fileName, 0, cachedBin, false);
                 }
+                syncedCount++;
               }
             }
           }
           await this.syncManifest();
-          return { synced: true, count: APP_STATE.files.length };
+          return { synced: true, count: syncedCount };
         } catch (err) {
           return { synced: false, reason: err.message };
         }
@@ -3246,16 +3471,27 @@
       const isCots = document.getElementById('newAssetCotsCheckbox').checked;
       const fileInput = document.getElementById('newAssetFileInput');
 
-      let meshData = null;
+      let arrayBuf = null;
+      let textMeshData = null;
       if (fileInput && fileInput.files && fileInput.files[0]) {
         try {
-          meshData = await fileInput.files[0].text();
+          arrayBuf = await fileInput.files[0].arrayBuffer();
+          const lower = fileInput.files[0].name.toLowerCase();
+          if (lower.endsWith('.obj')) {
+            textMeshData = new TextDecoder().decode(arrayBuf);
+          }
         } catch (_) {}
+      }
+
+      const fileId = 'file-' + Date.now();
+      const revId = `rev-${Date.now()}-1`;
+      if (arrayBuf) {
+        await LocalMeshVault.putBinary(`${fileId}-v1`, arrayBuf);
       }
 
       const author = APP_STATE.currentUser?.name || 'Engineer';
       const newFile = {
-        id: 'file-' + Date.now(),
+        id: fileId,
         projectId: proj.id,
         partNumber,
         fileName,
@@ -3269,14 +3505,15 @@
         pins: [],
         revisions: [
           {
-            id: `rev-${Date.now()}-1`,
+            id: revId,
             rev: 1,
             author,
             notes,
             massKg: 1.15,
             bbox: '150 x 110 x 12.7 mm',
             timestamp: new Date().toISOString().slice(0, 16).replace('T', ' '),
-            meshData
+            meshData: textMeshData,
+            hasBinaryMesh: Boolean(arrayBuf)
           }
         ],
         drawing: null
@@ -3284,14 +3521,19 @@
 
       APP_STATE.files.push(newFile);
       APP_STATE.selectedFileId = newFile.id;
-      await GoogleDriveVault.archiveSupersededAndUploadNew(proj.code, directoryPath, fileName, 0, meshData);
-      await GoogleDriveVault.syncManifest();
+      const driveUploaded = await GoogleDriveVault.archiveSupersededAndUploadNew(proj.code, directoryPath, fileName, 0, arrayBuf || textMeshData, true);
+      if (driveUploaded) await GoogleDriveVault.syncManifest();
       await TursoCloudSQL.logAudit('CAD_CREATE', author, `Registered ${partNumber} (${fileName})`);
       await persistAllData();
       closeModal('newAssetModal');
       renderFileExplorer();
       updateReleasedBadgeCount();
-      showToast(`Added ${fileName} (v1)`, 'success');
+      showToast(
+        driveUploaded
+          ? `Added ${fileName} (v1) & synced to Google Drive!`
+          : `Added ${fileName} (v1) to Turso SQL.`,
+        'success'
+      );
     }
 
     function openSubsystemRevisionModal() {
@@ -3359,8 +3601,14 @@
       for (const upFile of uploadedFiles) {
         const cleanName = upFile.name;
         if (cleanName.startsWith('.')) continue;
-        let meshData = null;
-        try { meshData = await upFile.text(); } catch (_) {}
+        let arrayBuf = null;
+        let textMeshData = null;
+        try {
+          arrayBuf = await upFile.arrayBuffer();
+          if (cleanName.toLowerCase().endsWith('.obj')) {
+            textMeshData = new TextDecoder().decode(arrayBuf);
+          }
+        } catch (_) {}
 
         const existing = APP_STATE.files.find(f =>
           f.projectId === proj.id && f.fileName.toLowerCase() === cleanName.toLowerCase()
@@ -3378,6 +3626,9 @@
             existing.lockedBy = null;
             existing.lockedByEmail = null;
           }
+          if (arrayBuf) {
+            await LocalMeshVault.putBinary(`${existing.id}-v${existing.activeRev}`, arrayBuf);
+          }
           existing.revisions.push({
             id: `${existing.id}-v${existing.activeRev}`,
             rev: existing.activeRev,
@@ -3386,17 +3637,22 @@
             massKg: Number(((prevRevRec?.massKg || 1.2) * 0.98).toFixed(2)),
             bbox: prevRevRec?.bbox || '150 x 120 x 40 mm',
             timestamp: new Date().toISOString().slice(0, 16).replace('T', ' '),
-            meshData
+            meshData: textMeshData,
+            hasBinaryMesh: Boolean(arrayBuf)
           });
           if (lifecycle === 'Released' && !existing.isCots) {
             existing.drawing = generateAutoDrawingRecord(existing);
           }
-          await GoogleDriveVault.archiveSupersededAndUploadNew(proj.code, existing.directoryPath, existing.fileName, prevRev, meshData);
+          await GoogleDriveVault.archiveSupersededAndUploadNew(proj.code, existing.directoryPath, existing.fileName, prevRev, arrayBuf || textMeshData, true);
           updatedCount++;
         } else {
           const partNo = 'PRT-' + Math.floor(1000 + Math.random() * 9000);
+          const newId = 'file-' + Date.now() + '-' + createdCount;
+          if (arrayBuf) {
+            await LocalMeshVault.putBinary(`${newId}-v1`, arrayBuf);
+          }
           const created = {
-            id: 'file-' + Date.now() + '-' + createdCount,
+            id: newId,
             projectId: proj.id,
             partNumber: partNo,
             fileName: cleanName,
@@ -3416,7 +3672,8 @@
               massKg: 1.1,
               bbox: '140 x 110 x 25 mm',
               timestamp: new Date().toISOString().slice(0, 16).replace('T', ' '),
-              meshData
+              meshData: textMeshData,
+              hasBinaryMesh: Boolean(arrayBuf)
             }],
             drawing: null
           };
@@ -3424,7 +3681,7 @@
             created.drawing = generateAutoDrawingRecord(created);
           }
           APP_STATE.files.push(created);
-          await GoogleDriveVault.archiveSupersededAndUploadNew(proj.code, targetDir, cleanName, 0, meshData);
+          await GoogleDriveVault.archiveSupersededAndUploadNew(proj.code, targetDir, cleanName, 0, arrayBuf || textMeshData, true);
           createdCount++;
         }
       }
@@ -3609,9 +3866,19 @@
       const releaseLock = document.getElementById('checkInReleaseLockCheckbox').checked;
       const fileInput = document.getElementById('checkInFileInput');
 
-      let meshData = null;
+      let arrayBuf = null;
+      let textMeshData = null;
       if (fileInput && fileInput.files && fileInput.files[0]) {
-        try { meshData = await fileInput.files[0].text(); } catch (_) {}
+        try {
+          arrayBuf = await fileInput.files[0].arrayBuffer();
+          if (fileInput.files[0].name.toLowerCase().endsWith('.obj')) {
+            textMeshData = new TextDecoder().decode(arrayBuf);
+          }
+        } catch (_) {}
+      }
+
+      if (arrayBuf) {
+        await LocalMeshVault.putBinary(`${f.id}-v${nextRev}`, arrayBuf);
       }
 
       // Archive previous revision under _vN in hidden .revisions/
@@ -3635,7 +3902,8 @@
         massKg: Number(((prevRevRec?.massKg || 1.3) * 0.97).toFixed(2)),
         bbox: prevRevRec?.bbox || '160 x 160 x 92 mm',
         timestamp: new Date().toISOString().slice(0, 16).replace('T', ' '),
-        meshData
+        meshData: textMeshData,
+        hasBinaryMesh: Boolean(arrayBuf)
       });
 
       if (lifecycle === 'Released' && !f.isCots) {
@@ -3643,16 +3911,21 @@
       }
 
       APP_STATE.viewedRevisionNum = nextRev;
-      await GoogleDriveVault.archiveSupersededAndUploadNew(proj.code, f.directoryPath, f.fileName, nextRev - 1, meshData);
-      await GoogleDriveVault.syncManifest();
+      const driveUploaded = await GoogleDriveVault.archiveSupersededAndUploadNew(proj.code, f.directoryPath, f.fileName, nextRev - 1, arrayBuf || textMeshData, true);
+      if (driveUploaded) await GoogleDriveVault.syncManifest();
       await TursoCloudSQL.logAudit('CHECK_IN', u.name, `Checked in v${nextRev} of ${f.partNumber}`);
       await persistAllData();
 
       closeModal('checkInModal');
       updateReleasedBadgeCount();
       renderActivePartWorkspace();
-      loadFileIntoMainViewport(f, nextRev);
-      showToast(`Checked in v${nextRev} of ${f.fileName}`, 'success');
+      await loadFileIntoMainViewport(f, nextRev);
+      showToast(
+        driveUploaded
+          ? `Checked in v${nextRev} of ${f.fileName} & archived v${nextRev - 1} in Google Drive!`
+          : `Checked in v${nextRev} of ${f.fileName}`,
+        'success'
+      );
     }
 
     async function toggleReleasePart() {
@@ -3707,15 +3980,33 @@
       showToast(`Released ${matches.length} part(s) (${prodCount} sent to Ready for Production).`, 'success');
     }
 
-    function downloadCurrentRevision() {
+    async function downloadCurrentRevision() {
       const f = APP_STATE.files.find(item => item.id === APP_STATE.selectedFileId);
-      if (!f) return;
+      const proj = getActiveProject();
+      if (!f || !proj) return;
       const revNum = APP_STATE.viewedRevisionNum || f.activeRev;
+      const isLatest = revNum === f.activeRev;
       const revObj = f.revisions.find(r => r.rev === revNum) || f.revisions[f.revisions.length - 1];
-      const downloadName = revNum === f.activeRev ? f.fileName : buildVersionedFileName(f.fileName, revNum);
-      const content = revObj?.meshData ||
-        `Raven Workbench PDM Export\nPart Number: ${f.partNumber}\nFile: ${f.fileName}\nRevision: v${revNum}\nAuthor: ${revObj?.author || ''}\nNotes: ${revObj?.notes || ''}\n`;
-      const blob = new Blob([content], { type: 'application/octet-stream' });
+      const downloadName = isLatest ? f.fileName : buildVersionedFileName(f.fileName, revNum);
+
+      // 1. Check local IndexedDB binary cache first
+      let payload = await LocalMeshVault.getBinary(`${f.id}-v${revNum}`);
+
+      // 2. Otherwise fetch the actual file from Google Drive (main folder or .revisions/)
+      if (!payload && APP_STATE.drive.clientId && APP_STATE.drive.folderId) {
+        payload = await GoogleDriveVault.downloadBinaryFromDrive(proj.code, f.directoryPath, f.fileName, revNum, isLatest);
+        if (payload) {
+          await LocalMeshVault.putBinary(`${f.id}-v${revNum}`, payload);
+        }
+      }
+
+      // 3. Fallback to text meshData or metadata stub
+      if (!payload) {
+        payload = revObj?.meshData ||
+          `Raven Workbench PDM Export\nPart Number: ${f.partNumber}\nFile: ${f.fileName}\nRevision: v${revNum}\nAuthor: ${revObj?.author || ''}\nNotes: ${revObj?.notes || ''}\n`;
+      }
+
+      const blob = new Blob([payload], { type: 'application/octet-stream' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -4567,9 +4858,24 @@
       const originEl = document.getElementById('driveCurrentOriginText');
       const permBadge = document.getElementById('driveRootPermissionBadge');
       const submitBtn = document.getElementById('btnDriveAuthSubmit');
+      const statusBox = document.getElementById('driveConnectionStatusBox');
 
       if (clientIn) clientIn.value = APP_STATE.drive.clientId || '';
       if (folderIn) folderIn.value = APP_STATE.drive.folderId || '';
+
+      if (statusBox) {
+        if (GoogleDriveVault.hasValidToken()) {
+          statusBox.classList.remove('hidden');
+          statusBox.className = 'rounded-xl p-3 text-xs border bg-emerald-500/10 border-emerald-500/35 text-emerald-200';
+          statusBox.innerHTML = `<strong>✓ Connected &amp; Authorized to Google Drive</strong>${APP_STATE.drive.lastSync ? ` • Last synced at ${escapeHtml(APP_STATE.drive.lastSync)}` : ''}`;
+        } else if (APP_STATE.drive.clientId && APP_STATE.drive.folderId) {
+          statusBox.classList.remove('hidden');
+          statusBox.className = 'rounded-xl p-3 text-xs border bg-amber-500/10 border-amber-500/35 text-amber-200';
+          statusBox.innerHTML = `<strong>Configured in Turso SQL — Browser Session Token Needed:</strong> Click <strong>Authorize &amp; Sync Folder</strong> below to grant Drive access in this browser session.`;
+        } else {
+          statusBox.classList.add('hidden');
+        }
+      }
 
       const origin = window.location.origin && window.location.origin !== 'null'
         ? window.location.origin
@@ -4582,7 +4888,7 @@
       }
       if (clientIn) clientIn.disabled = !isRoot;
       if (folderIn) folderIn.disabled = !isRoot;
-      if (submitBtn) submitBtn.disabled = !isRoot;
+      if (submitBtn) submitBtn.disabled = false;
 
       openModal('driveConnectModal');
     }
@@ -4599,8 +4905,13 @@
     }
 
     async function initiateGoogleDriveAuth() {
-      const clientId = (document.getElementById('driveClientIdInput').value || '').trim();
-      const folderRaw = (document.getElementById('driveFolderIdInput').value || '').trim();
+      const isRoot = Boolean(APP_STATE.currentUser?.isRootAdmin || APP_STATE.currentUser?.role === 'Mentor');
+      const clientId = isRoot
+        ? (document.getElementById('driveClientIdInput').value || '').trim()
+        : (APP_STATE.drive.clientId || '').trim();
+      const folderRaw = isRoot
+        ? (document.getElementById('driveFolderIdInput').value || '').trim()
+        : (APP_STATE.drive.folderId || '').trim();
       const folderId = GoogleDriveVault.extractFolderId(folderRaw);
 
       if (!clientId || !folderId) {
@@ -4608,9 +4919,11 @@
         return;
       }
 
-      APP_STATE.drive.clientId = clientId;
-      APP_STATE.drive.folderId = folderId;
-      await persistAllData();
+      if (isRoot) {
+        APP_STATE.drive.clientId = clientId;
+        APP_STATE.drive.folderId = folderId;
+        await persistAllData();
+      }
 
       if (!GoogleDriveVault.isOriginValidForGoogleOAuth()) {
         showToast('Credentials saved to Turso SQL. Open your deployed HTTPS URL (not local file:// or preview iframe) to run Google OAuth.', 'warning');
@@ -4618,33 +4931,12 @@
         return;
       }
 
-      if (window.google && google.accounts && google.accounts.oauth2) {
-        try {
-          GoogleDriveVault.tokenClient = google.accounts.oauth2.initTokenClient({
-            client_id: clientId,
-            scope: 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive',
-            callback: async (resp) => {
-              if (resp && resp.access_token) {
-                APP_STATE.drive.accessToken = resp.access_token;
-                APP_STATE.drive.connected = true;
-                const check = await GoogleDriveVault.verifyAllFilesSynced();
-                showToast(
-                  check.synced
-                    ? `Google Drive authorized & ${check.count} file(s) synced!`
-                    : 'Google Drive authorized and manifest synced.',
-                  'success'
-                );
-                closeModal('driveConnectModal');
-              }
-            }
-          });
-          GoogleDriveVault.tokenClient.requestAccessToken();
-        } catch (err) {
-          showToast('Google OAuth error: verify Authorized JavaScript origins in Google Cloud Console.', 'error');
-        }
-      } else {
-        showToast('Google Identity script still loading — credentials saved to Turso SQL.', 'info');
+      const check = await GoogleDriveVault.verifyAllFilesSynced(true);
+      if (check.synced) {
+        showToast(`Google Drive authorized & ${check.count} file(s) synced!`, 'success');
         closeModal('driveConnectModal');
+      } else {
+        showToast(`Google Drive authorization incomplete: ${check.reason}`, 'error');
       }
     }
 
@@ -4705,7 +4997,7 @@
           tursoOk = await TursoCloudSQL.pullAllFromTurso(false);
           if (tursoOk) LocalSqliteEngine.syncFromState();
         }
-        const driveCheck = await GoogleDriveVault.verifyAllFilesSynced();
+        const driveCheck = await GoogleDriveVault.verifyAllFilesSynced(true);
         updatePendingBadgeCount();
         updateReleasedBadgeCount();
         if (APP_STATE.activeTopView === 'projects') renderProjectsLanding();
@@ -4715,7 +5007,7 @@
         if (tursoOk && driveCheck.synced) {
           showToast(`Synced Turso Cloud SQL & verified ${driveCheck.count} file(s) in Google Drive.`, 'success');
         } else if (tursoOk) {
-          showToast(`Synced Turso Cloud SQL. (${driveCheck.reason})`, 'info');
+          showToast(`Synced Turso Cloud SQL. Google Drive: ${driveCheck.reason}`, 'warning');
         } else {
           showToast('Local SQLite mirror refreshed.', 'info');
         }
@@ -4831,32 +5123,31 @@
         }
 
         mainCanvas.addEventListener('click', handleMainCanvasClickForPin);
+        window.addEventListener('resize', () => {
+          resizeMainThreeCanvas();
+          resizeMiniThreeCanvas();
+        });
+        resizeMainThreeCanvas();
       }
 
-      // Mini Quick Preview Canvas
+      // Mini Quick-Preview 3D Viewport in File Explorer
       const miniCanvas = document.getElementById('explorerMiniCanvas');
       if (miniCanvas) {
         miniScene = new THREE.Scene();
-        miniCamera = new THREE.PerspectiveCamera(42, 1.6, 0.1, 100);
+        miniCamera = new THREE.PerspectiveCamera(40, 16 / 9, 0.1, 100);
         miniCamera.position.set(3.8, 3.0, 4.4);
         miniCamera.lookAt(0, 0, 0);
 
         miniRenderer = new THREE.WebGLRenderer({ canvas: miniCanvas, antialias: true, alpha: true });
         miniRenderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+
         const mAmb = new THREE.AmbientLight(0xffffff, 0.7);
-        const mDir = new THREE.DirectionalLight(0xffffff, 0.85);
+        const mDir = new THREE.DirectionalLight(0xffffff, 0.9);
         mDir.position.set(5, 8, 6);
         miniScene.add(mAmb, mDir);
-      }
 
-      window.addEventListener('resize', () => {
-        resizeMainThreeCanvas();
         resizeMiniThreeCanvas();
-      });
-
-      resizeMiniThreeCanvas();
-      const firstFile = APP_STATE.files.find(f => f.projectId === APP_STATE.activeProjectId);
-      if (firstFile) refreshMiniPreviewMesh(firstFile);
+      }
 
       animateThreeLoop();
     }
@@ -4872,17 +5163,17 @@
     }
 
     function resizeMiniThreeCanvas() {
-      const miniCanvas = document.getElementById('explorerMiniCanvas');
-      if (!miniCanvas || !miniRenderer || !miniCamera) return;
-      const parent = miniCanvas.parentElement;
-      const w = parent?.clientWidth || 300;
-      const h = parent?.clientHeight || 190;
+      const canvas = document.getElementById('explorerMiniCanvas');
+      if (!canvas || !miniRenderer || !miniCamera) return;
+      const rect = canvas.parentElement?.getBoundingClientRect();
+      const w = (rect && rect.width) || 320;
+      const h = (rect && rect.height) || 200;
       miniCamera.aspect = w / h;
       miniCamera.updateProjectionMatrix();
       miniRenderer.setSize(w, h, false);
     }
 
-    function buildParametricCadGroup(file, revNum = 1, isGhost = false) {
+    function buildParametricCadGroup(file, revNum = 1, isGhost = false, binaryBuffer = null) {
       const group = new THREE.Group();
       const seed = (file?.partNumber || 'ASM').split('').reduce((a, c) => a + c.charCodeAt(0), 0) + revNum * 17;
       const mat = new THREE.MeshStandardMaterial({
@@ -4902,13 +5193,48 @@
         clippingPlanes: clipPlanes
       });
 
-      // Render uploaded .OBJ or ASCII .STL geometry if stored on this revision
+      const lowerFileName = (file?.fileName || '').toLowerCase();
       const revObj = (file?.revisions || []).find(r => r.rev === revNum) || (file?.revisions || [])[file.revisions.length - 1];
+
+      // 1. Render real Binary or ASCII .STL / .OBJ from IndexedDB ArrayBuffer or Drive download
+      if (binaryBuffer && binaryBuffer.byteLength > 0) {
+        try {
+          let loadedObj = null;
+          if (lowerFileName.endsWith('.stl') && THREE.STLLoader) {
+            const geo = new THREE.STLLoader().parse(binaryBuffer);
+            geo.computeVertexNormals();
+            loadedObj = new THREE.Mesh(geo, mat);
+          } else if (lowerFileName.endsWith('.obj') && THREE.OBJLoader) {
+            const objText = new TextDecoder().decode(binaryBuffer);
+            loadedObj = new THREE.OBJLoader().parse(objText);
+            loadedObj.traverse(child => {
+              if (child.isMesh) child.material = mat;
+            });
+          }
+          if (loadedObj) {
+            const box = new THREE.Box3().setFromObject(loadedObj);
+            const size = new THREE.Vector3();
+            const center = new THREE.Vector3();
+            box.getSize(size);
+            box.getCenter(center);
+            const maxDim = Math.max(size.x, size.y, size.z) || 1;
+            const scale = 2.6 / maxDim;
+            loadedObj.scale.setScalar(scale);
+            loadedObj.position.sub(center.multiplyScalar(scale));
+            group.add(loadedObj);
+            return group;
+          }
+        } catch (err) {
+          console.warn('Binary CAD mesh parse fallback:', err);
+        }
+      }
+
+      // 2. Render stored ASCII .STL or .OBJ string if present
       if (revObj && typeof revObj.meshData === 'string' && revObj.meshData.trim().length > 0) {
         try {
           const raw = revObj.meshData.trim();
           let loadedObj = null;
-          if (raw.startsWith('solid') && THREE.STLLoader) {
+          if ((raw.startsWith('solid') || lowerFileName.endsWith('.stl')) && THREE.STLLoader) {
             const geo = new THREE.STLLoader().parse(raw);
             geo.computeVertexNormals();
             loadedObj = new THREE.Mesh(geo, mat);
@@ -4934,7 +5260,7 @@
         } catch (_) {}
       }
 
-      // Parametric FRC CNC billet plate + bearing boss assembly fallback
+      // 3. Parametric FRC CNC billet plate + bearing boss assembly fallback (for native .sldprt/.step without STL mesh)
       const baseGeo = new THREE.BoxGeometry(2.6 + (seed % 5) * 0.15, 0.36, 2.2 + (seed % 3) * 0.2);
       const baseMesh = new THREE.Mesh(baseGeo, mat);
       baseMesh.userData.explodeDir = new THREE.Vector3(0, -0.8, 0);
@@ -4956,24 +5282,46 @@
       return group;
     }
 
-    function loadFileIntoMainViewport(file, revNum) {
+    async function resolveBinaryMeshForRevision(file, revNum) {
+      if (!file) return null;
+      const cacheKey = `${file.id}-v${revNum}`;
+      let buf = await LocalMeshVault.getBinary(cacheKey);
+      if (!buf && GoogleDriveVault.hasValidToken()) {
+        const proj = APP_STATE.projects.find(p => p.id === file.projectId) || getActiveProject();
+        if (proj) {
+          buf = await GoogleDriveVault.downloadBinaryFromDrive(
+            proj.code,
+            file.directoryPath,
+            file.fileName,
+            revNum,
+            revNum === file.activeRev
+          );
+          if (buf) await LocalMeshVault.putBinary(cacheKey, buf);
+        }
+      }
+      return buf;
+    }
+
+    async function loadFileIntoMainViewport(file, revNum) {
       if (!mainScene) return;
+      const binaryBuf = await resolveBinaryMeshForRevision(file, revNum);
       if (activeModelGroup) mainScene.remove(activeModelGroup);
       if (diffGhostGroup) {
         mainScene.remove(diffGhostGroup);
         diffGhostGroup = null;
       }
-      activeModelGroup = buildParametricCadGroup(file, revNum, false);
+      activeModelGroup = buildParametricCadGroup(file, revNum, false, binaryBuf);
       mainScene.add(activeModelGroup);
       applyRenderModeToGroup(activeModelGroup, APP_STATE.renderMode);
       updateExplodeFactor(APP_STATE.explodeFactor);
     }
 
-    function refreshMiniPreviewMesh(file) {
+    async function refreshMiniPreviewMesh(file) {
       if (!miniScene) return;
       resizeMiniThreeCanvas();
+      const binaryBuf = await resolveBinaryMeshForRevision(file, file.activeRev);
       if (miniModelGroup) miniScene.remove(miniModelGroup);
-      miniModelGroup = buildParametricCadGroup(file, file.activeRev, false);
+      miniModelGroup = buildParametricCadGroup(file, file.activeRev, false, binaryBuf);
       miniScene.add(miniModelGroup);
     }
 
