@@ -39,10 +39,34 @@
   </script>
 
   <!-- Three.js r128 + OrbitControls + STLLoader + OBJLoader -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/STLLoader.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/OBJLoader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+  <script>
+    (function loadThreeAddons() {
+      function injectAddons() {
+        if (typeof window.THREE === 'undefined') return;
+        const addons = [
+          'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js',
+          'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/STLLoader.js',
+          'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/OBJLoader.js'
+        ];
+        addons.forEach(function (src) {
+          const s = document.createElement('script');
+          s.src = src;
+          s.async = false;
+          document.head.appendChild(s);
+        });
+      }
+
+      if (typeof window.THREE !== 'undefined') {
+        injectAddons();
+      } else {
+        const fallback = document.createElement('script');
+        fallback.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
+        fallback.onload = injectAddons;
+        document.head.appendChild(fallback);
+      }
+    })();
+  </script>
 
   <!-- jsPDF for 8.5" x 11" Engineering Drawing PDF Generation -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1944,63 +1968,49 @@
             });
             const savedB64 = localStorage.getItem(this.STORAGE_KEY);
             if (savedB64) {
-              const binaryStr = atob(savedB64);
-              const bytes = new Uint8Array(binaryStr.length);
-              for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
-              this.db = new SQL.Database(bytes);
+              const binary = Uint8Array.from(atob(savedB64), c => c.charCodeAt(0));
+              this.db = new SQL.Database(binary);
             } else {
               this.db = new SQL.Database();
             }
             this.ensureSchema();
             this.loadIntoState();
-          } else {
-            this.loadJsonFallback();
+            return true;
           }
         } catch (err) {
-          console.warn('sql.js init fallback to localStorage JSON mirror:', err);
-          this.loadJsonFallback();
+          console.warn('LocalSqliteEngine WASM init fallback:', err);
         }
+        this.loadJsonFallback();
+        return false;
       },
 
       ensureSchema() {
         if (!this.db) return;
         this.db.run(`
-          CREATE TABLE IF NOT EXISTS app_config (key TEXT PRIMARY KEY, value TEXT NOT NULL);
-          CREATE TABLE IF NOT EXISTS users (
-            id TEXT PRIMARY KEY, name TEXT, email TEXT UNIQUE, password TEXT,
-            role TEXT, subteam TEXT, status TEXT, is_root_admin INTEGER, must_change_password INTEGER, created_at TEXT
-          );
+          CREATE TABLE IF NOT EXISTS app_config (key TEXT PRIMARY KEY, value TEXT);
+          CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, name TEXT, email TEXT, password TEXT, role TEXT, subteam TEXT, status TEXT, is_root_admin INTEGER, must_change_password INTEGER, created_at TEXT);
           CREATE TABLE IF NOT EXISTS projects (id TEXT PRIMARY KEY, code TEXT, name TEXT, directories_json TEXT);
-          CREATE TABLE IF NOT EXISTS cad_files (
-            id TEXT PRIMARY KEY, project_id TEXT, part_number TEXT, file_name TEXT, directory_path TEXT,
-            lifecycle TEXT, active_rev INTEGER, locked_by TEXT, locked_by_email TEXT,
-            bom_json TEXT, pins_json TEXT, drawing_json TEXT, is_cots INTEGER
-          );
-          CREATE TABLE IF NOT EXISTS cad_revisions (
-            id TEXT PRIMARY KEY, file_id TEXT, rev INTEGER, author TEXT, notes TEXT,
-            mass_kg REAL, bbox TEXT, timestamp TEXT, mesh_data TEXT
-          );
-          CREATE TABLE IF NOT EXISTS audit_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, category TEXT, actor TEXT, action TEXT, timestamp TEXT);
+          CREATE TABLE IF NOT EXISTS cad_files (id TEXT PRIMARY KEY, project_id TEXT, part_number TEXT, file_name TEXT, directory_path TEXT, lifecycle TEXT, active_rev INTEGER, locked_by TEXT, locked_by_email TEXT, bom_json TEXT, pins_json TEXT, drawing_json TEXT, is_cots INTEGER);
+          CREATE TABLE IF NOT EXISTS cad_revisions (id TEXT PRIMARY KEY, file_id TEXT, rev INTEGER, author TEXT, notes TEXT, mass_kg REAL, bbox TEXT, timestamp TEXT, mesh_data TEXT);
         `);
       },
 
       saveToBrowser() {
         try {
+          if (this.db) {
+            const bytes = this.db.export();
+            let binStr = '';
+            for (let i = 0; i < bytes.length; i++) binStr += String.fromCharCode(bytes[i]);
+            localStorage.setItem(this.STORAGE_KEY, btoa(binStr));
+          }
           localStorage.setItem(this.STATE_BACKUP_KEY, JSON.stringify({
             drive: { clientId: APP_STATE.drive.clientId, folderId: APP_STATE.drive.folderId },
             users: APP_STATE.users,
             projects: APP_STATE.projects,
-            files: APP_STATE.files,
-            auditLogs: APP_STATE.auditLogs
+            files: APP_STATE.files
           }));
-          if (this.db) {
-            const data = this.db.export();
-            let bin = '';
-            for (let i = 0; i < data.length; i++) bin += String.fromCharCode(data[i]);
-            localStorage.setItem(this.STORAGE_KEY, btoa(bin));
-          }
         } catch (err) {
-          console.warn('Browser storage quota warning:', err);
+          console.warn('Local browser persistence warning:', err);
         }
       },
 
@@ -2016,7 +2026,6 @@
           if (Array.isArray(parsed.users) && parsed.users.length) APP_STATE.users = parsed.users;
           if (Array.isArray(parsed.projects) && parsed.projects.length) APP_STATE.projects = parsed.projects;
           if (Array.isArray(parsed.files) && parsed.files.length) APP_STATE.files = parsed.files;
-          if (Array.isArray(parsed.auditLogs)) APP_STATE.auditLogs = parsed.auditLogs;
         } catch (_) {}
       },
 
@@ -2504,20 +2513,31 @@
         const rootId = this.extractFolderId(rawRootId);
         if (!rootId) throw new Error('Target Google Drive Folder ID is empty.');
         const resp = await fetch(
-          `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(rootId)}?fields=id,name,mimeType,trashed&supportsAllDrives=true`,
+          `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(rootId)}?fields=id,name,mimeType,trashed,capabilities(canAddChildren)&supportsAllDrives=true`,
           { headers: { Authorization: `Bearer ${APP_STATE.drive.accessToken}` } }
         );
         if (!resp.ok) {
           let errMsg = resp.statusText;
+          let errReason = '';
           try {
             const errJson = await resp.json();
             errMsg = errJson?.error?.message || errMsg;
+            errReason = errJson?.error?.errors?.[0]?.reason || '';
           } catch (_) {}
+          if (resp.status === 401 || resp.status === 403) {
+            this.clearSessionToken();
+          }
           if (resp.status === 404) {
             throw new Error(`Folder ID "${rootId}" not found or not shared with your signed-in Google account.`);
           }
           if (resp.status === 403) {
-            throw new Error(`Google Drive API access denied (${errMsg}). Ensure Google Drive API is enabled in Google Cloud Console.`);
+            if (errReason === 'accessNotConfigured') {
+              throw new Error(`403 accessNotConfigured: Enable "Google Drive API" in Google Cloud Console → APIs & Services → Library for this Client ID's project.`);
+            }
+            if (errReason === 'insufficientPermissions' || errReason === 'insufficientFilePermissions') {
+              throw new Error(`403 ${errReason}: Click "Authorize & Sync Folder" and check the Google Drive permission checkbox on the consent screen (and verify Editor access on the folder).`);
+            }
+            throw new Error(`403 (${errReason || 'Forbidden'}): ${errMsg}`);
           }
           throw new Error(`Root folder verification failed (${resp.status}): ${errMsg}`);
         }
@@ -2708,11 +2728,11 @@
         }
       },
 
-      async verifyAllFilesSynced(interactive = true) {
+      async verifyAllFilesSynced(interactive = true, forceConsent = false) {
         if (!APP_STATE.drive.clientId || !APP_STATE.drive.folderId) {
           return { synced: false, reason: 'Google Drive Client ID / Folder ID not configured yet.' };
         }
-        const authorized = await this.ensureAuthorized({ interactive });
+        const authorized = await this.ensureAuthorized({ interactive, forceConsent });
         if (!authorized) {
           return { synced: false, reason: this.lastAuthError || 'Google Drive OAuth authorization required.' };
         }
@@ -2765,16 +2785,16 @@
       if (forceForm) forceForm.classList.add('hidden');
       if (pendingBox) pendingBox.classList.add('hidden');
 
-      if (tab === 'signin') {
-        signInForm.classList.remove('hidden');
-        signUpForm.classList.add('hidden');
-        btnIn.className = 'py-2.5 px-3 rounded-lg text-xs sm:text-sm font-semibold transition bg-[#ff3820] text-white shadow';
-        btnUp.className = 'py-2.5 px-3 rounded-lg text-xs sm:text-sm font-semibold transition text-[#a1a1aa] hover:text-white';
+      if (tab === 'signup') {
+        if (signInForm) signInForm.classList.add('hidden');
+        if (signUpForm) signUpForm.classList.remove('hidden');
+        if (btnUp) btnUp.className = 'py-2.5 px-3 rounded-lg text-xs sm:text-sm font-semibold transition bg-[#ff3820] text-white shadow';
+        if (btnIn) btnIn.className = 'py-2.5 px-3 rounded-lg text-xs sm:text-sm font-semibold transition text-[#a1a1aa] hover:text-white';
       } else {
-        signInForm.classList.add('hidden');
-        signUpForm.classList.remove('hidden');
-        btnUp.className = 'py-2.5 px-3 rounded-lg text-xs sm:text-sm font-semibold transition bg-[#ff3820] text-white shadow';
-        btnIn.className = 'py-2.5 px-3 rounded-lg text-xs sm:text-sm font-semibold transition text-[#a1a1aa] hover:text-white';
+        if (signUpForm) signUpForm.classList.add('hidden');
+        if (signInForm) signInForm.classList.remove('hidden');
+        if (btnIn) btnIn.className = 'py-2.5 px-3 rounded-lg text-xs sm:text-sm font-semibold transition bg-[#ff3820] text-white shadow';
+        if (btnUp) btnUp.className = 'py-2.5 px-3 rounded-lg text-xs sm:text-sm font-semibold transition text-[#a1a1aa] hover:text-white';
       }
     }
 
