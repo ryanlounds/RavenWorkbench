@@ -41,6 +41,9 @@
   <!-- Local SQLite WebAssembly Engine (sql.js) for Relational Local SQL Persistence -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/sql-wasm.js"></script>
 
+  <!-- JSZip for Multi-File & Folder ZIP Downloads -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
   <!-- Google Identity Services (GIS) for Zero-Prompt / Seamless Google Drive OAuth -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 
@@ -290,7 +293,7 @@
   <div id="mainAppShell" class="hidden h-screen w-full flex flex-col overflow-hidden bg-[#111113]">
 
     <!-- Top Navigation Bar -->
-    <header class="h-14 shrink-0 bg-[#18181b] border-b border-[#2e2e34] px-3 sm:px-4 flex items-center justify-between gap-2 z-20">
+    <header id="mainTopHeader" class="h-14 shrink-0 bg-[#18181b] border-b border-[#2e2e34] px-3 sm:px-4 flex items-center justify-between gap-2 z-20">
       <!-- Left: Brand + Primary Navigation Tabs -->
       <div class="flex items-center gap-3 min-w-0">
         <button type="button" onclick="switchTopNavView('projects')" class="flex items-center gap-2 text-left shrink-0 group">
@@ -455,6 +458,13 @@
             <input id="explorerSearchInput" type="text" oninput="renderFileExplorer()" placeholder="Search folder..." class="w-full pl-8 pr-3 py-1.5 rounded-xl bg-[#222226] border border-[#323238] text-xs text-white placeholder-[#71717a] focus:outline-none focus:border-[#ff3820]" />
           </div>
 
+          <button id="btnExplorerDownloadSelected" type="button" onclick="downloadSelectedExplorerItems()" class="hidden px-3 py-1.5 rounded-xl bg-[#222226] hover:bg-[#ff3820] border border-[#35353d] hover:border-[#ff3820] text-white text-xs font-semibold flex items-center gap-1.5 transition">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            <span id="btnExplorerDownloadSelectedLabel">Download Selected</span>
+          </button>
+
           <button id="btnExplorerReleaseFolder" type="button" onclick="releaseSelectedDirectory()" class="hidden px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold transition">
             Release Folder
           </button>
@@ -510,8 +520,11 @@
           </div>
 
           <!-- Column Headers -->
-          <div class="grid grid-cols-12 gap-2 px-4 py-2 bg-[#16161a] border-b border-[#26262c] text-[11px] font-bold uppercase tracking-wider text-[#71717a] shrink-0">
-            <div class="col-span-6 sm:col-span-5">Name</div>
+          <div class="grid grid-cols-12 gap-2 px-4 py-2 bg-[#16161a] border-b border-[#26262c] text-[11px] font-bold uppercase tracking-wider text-[#71717a] shrink-0 items-center">
+            <div class="col-span-6 sm:col-span-5 flex items-center gap-2.5">
+              <input id="explorerSelectAllCheckbox" type="checkbox" onclick="toggleSelectAllExplorerItems(this.checked)" title="Select / Deselect All in View" class="w-3.5 h-3.5 rounded accent-[#ff3820] cursor-pointer shrink-0" />
+              <span>Name</span>
+            </div>
             <div class="col-span-2 hidden sm:block">Rev / Format</div>
             <div class="col-span-3 sm:col-span-2">Status</div>
             <div class="col-span-3 text-right">Lock / Action</div>
@@ -1029,6 +1042,19 @@
           </div>
         </div>
 
+        <div class="p-3.5 rounded-xl bg-[#222226] border border-[#2e2e34] flex items-center justify-between gap-3">
+          <label for="editProjectShowOnDashCheckbox" class="flex items-start gap-2.5 cursor-pointer flex-1">
+            <input id="editProjectShowOnDashCheckbox" type="checkbox" class="mt-0.5 w-4 h-4 rounded accent-[#ff3820] cursor-pointer" />
+            <div>
+              <div class="text-xs font-bold text-white">Show Project on Production Dashboard (/dash)</div>
+              <p class="text-[11px] text-[#a1a1aa] mt-0.5">Selects this project as the active shop-floor display for <span class="font-mono text-white">/dash</span>.</p>
+            </div>
+          </label>
+          <button type="button" onclick="openProjectDashboardFromOptions()" class="px-3 py-1.5 rounded-lg bg-[#18181b] hover:bg-[#ff3820] border border-[#35353d] hover:border-[#ff3820] text-[11px] font-semibold text-white shrink-0 transition">
+            Open /dash →
+          </button>
+        </div>
+
         <div>
           <label for="editProjectDirsInput" class="block text-xs font-semibold text-[#d4d4d8] mb-1.5">Subsystem Directories (In Production Priority Order — Top = Priority #1)</label>
           <textarea id="editProjectDirsInput" rows="5" placeholder="Drivetrain&#10;Drivetrain/Swerve Modules&#10;Elevator & Carriage" class="w-full px-3.5 py-2 rounded-xl bg-[#222226] border border-[#35353d] text-xs font-mono text-white placeholder-[#71717a] focus:outline-none focus:border-[#ff3820]"></textarea>
@@ -1284,9 +1310,12 @@
       pendingPasswordChangeUserId: null,
       activeTopView: 'designs',
       activeProjectId: 'proj-2026',
+      dashboardProjectId: 'proj-2026',
       currentDirectory: '',
       vaultFilter: 'all',
       selectedFileId: null,
+      selectedExplorerFileIds: [],
+      selectedExplorerFolders: [],
       viewedRevisionNum: null,
       activeProductionCategoryTab: 'CNC',
       activeInspectorTab: 'revisions',
@@ -1568,7 +1597,8 @@
           const configEntries = [
             ['drive_client_id', APP_STATE.drive?.clientId || ''],
             ['drive_folder_id', APP_STATE.drive?.folderId || ''],
-            ['storage_backend', APP_STATE.storageBackend || 'local']
+            ['storage_backend', APP_STATE.storageBackend || 'local'],
+            ['dashboard_project_id', APP_STATE.dashboardProjectId || APP_STATE.activeProjectId || '']
           ];
           for (const [k, v] of configEntries) {
             stmts.push({
@@ -1691,6 +1721,7 @@
             if (row.key === 'drive_client_id' && row.value) APP_STATE.drive.clientId = row.value;
             if (row.key === 'drive_folder_id' && row.value) APP_STATE.drive.folderId = row.value;
             if (row.key === 'storage_backend' && row.value) APP_STATE.storageBackend = row.value;
+            if (row.key === 'dashboard_project_id' && row.value) APP_STATE.dashboardProjectId = row.value;
           });
 
           if (userRows.length > 0) {
@@ -1889,6 +1920,7 @@
             cfgRes[0].values.forEach(([k, v]) => {
               if (k === 'drive_client_id' && v) APP_STATE.drive.clientId = v;
               if (k === 'drive_folder_id' && v) APP_STATE.drive.folderId = v;
+              if (k === 'dashboard_project_id' && v) APP_STATE.dashboardProjectId = v;
             });
           }
           const userRes = this.db.exec('SELECT id, name, email, password, role, subteam, status, is_root_admin, must_change_password, created_at FROM users;');
@@ -1952,6 +1984,7 @@
           this.db.run('DELETE FROM app_config; DELETE FROM users; DELETE FROM projects; DELETE FROM cad_files; DELETE FROM cad_revisions;');
           this.db.run('INSERT INTO app_config (key, value) VALUES (?, ?);', ['drive_client_id', APP_STATE.drive.clientId || '']);
           this.db.run('INSERT INTO app_config (key, value) VALUES (?, ?);', ['drive_folder_id', APP_STATE.drive.folderId || '']);
+          this.db.run('INSERT INTO app_config (key, value) VALUES (?, ?);', ['dashboard_project_id', APP_STATE.dashboardProjectId || APP_STATE.activeProjectId || '']);
 
           for (const u of APP_STATE.users) {
             this.db.run(
@@ -2908,6 +2941,12 @@ Timestamp: ${new Date().toISOString()}
       APP_STATE.activeTopView = view;
       if (updateUrl) syncBrowserRouteForView(view);
 
+      const mainHeader = document.getElementById('mainTopHeader');
+      if (mainHeader) {
+        if (view === 'dash') mainHeader.classList.add('hidden');
+        else mainHeader.classList.remove('hidden');
+      }
+
       document.querySelectorAll('.top-nav-btn').forEach(btn => {
         const isTarget = btn.getAttribute('data-nav') === view;
         btn.className = isTarget
@@ -2945,9 +2984,11 @@ Timestamp: ${new Date().toISOString()}
     function renderProjectsLanding() {
       const container = document.getElementById('projectsGridContainer');
       if (!container) return;
+      const dashProjId = APP_STATE.dashboardProjectId || APP_STATE.activeProjectId;
 
       container.innerHTML = APP_STATE.projects.map(proj => {
         const isActive = proj.id === APP_STATE.activeProjectId;
+        const isDashSelected = proj.id === dashProjId;
         const projFiles = APP_STATE.files.filter(f => f.projectId === proj.id);
         const releasedProdCount = projFiles.filter(f => f.lifecycle === 'Released' && !f.isCots).length;
         const lockedCount = projFiles.filter(f => Boolean(f.lockedBy)).length;
@@ -2955,9 +2996,12 @@ Timestamp: ${new Date().toISOString()}
         return `
           <div class="rounded-2xl bg-[#18181b] border ${isActive ? 'border-[#ff3820]' : 'border-[#2e2e34]'} p-5 flex flex-col justify-between gap-4 shadow-xl transition">
             <div class="space-y-3">
-              <div class="flex items-center justify-between gap-2">
+              <div class="flex items-center justify-between gap-2 flex-wrap">
                 <span class="px-2.5 py-0.5 rounded-md bg-[#222226] border border-[#35353d] text-xs font-mono font-bold text-[#ff523d]">${escapeHtml(proj.code)}</span>
-                ${isActive ? '<span class="px-2 py-0.5 rounded-full bg-[#ff3820]/15 text-[#ff523d] text-[10px] font-bold uppercase">Active Project</span>' : ''}
+                <div class="flex items-center gap-1.5">
+                  ${isDashSelected ? '<span class="px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/35 text-emerald-300 text-[10px] font-bold uppercase">/dash Target</span>' : ''}
+                  ${isActive ? '<span class="px-2 py-0.5 rounded-full bg-[#ff3820]/15 text-[#ff523d] text-[10px] font-bold uppercase">Active Vault</span>' : ''}
+                </div>
               </div>
               <div>
                 <h2 class="text-lg font-extrabold text-white">${escapeHtml(proj.name)}</h2>
@@ -3035,11 +3079,24 @@ Timestamp: ${new Date().toISOString()}
       document.getElementById('editProjectCodeInput').value = proj.code;
       document.getElementById('editProjectNameInput').value = proj.name;
       document.getElementById('editProjectDirsInput').value = (proj.directories || []).join('\n');
+      const dashProjId = APP_STATE.dashboardProjectId || APP_STATE.activeProjectId;
+      const dashChk = document.getElementById('editProjectShowOnDashCheckbox');
+      if (dashChk) dashChk.checked = (proj.id === dashProjId);
       document.getElementById('editProjectModalSubtitle').textContent = `Configure ${proj.code} — ${proj.name}`;
       document.getElementById('confirmDeleteCodeHint').textContent = proj.code;
       document.getElementById('confirmDeleteProjectInput').value = '';
       switchEditProjectTab('properties');
       openModal('editProjectModal');
+    }
+
+    async function openProjectDashboardFromOptions() {
+      const projId = document.getElementById('editProjectIdInput').value;
+      const proj = APP_STATE.projects.find(p => p.id === projId);
+      if (!proj) return;
+      APP_STATE.dashboardProjectId = proj.id;
+      await persistAllData();
+      closeModal('editProjectModal');
+      switchTopNavView('dash');
     }
 
     function switchEditProjectTab(tab) {
@@ -3078,12 +3135,20 @@ Timestamp: ${new Date().toISOString()}
       proj.name = newName || proj.name;
       proj.directories = Array.from(new Set(rawDirs));
 
+      const showOnDash = document.getElementById('editProjectShowOnDashCheckbox')?.checked;
+      if (showOnDash) {
+        APP_STATE.dashboardProjectId = proj.id;
+      } else if (APP_STATE.dashboardProjectId === proj.id) {
+        APP_STATE.dashboardProjectId = APP_STATE.activeProjectId;
+      }
+
       await TursoCloudSQL.logAudit('PROJECT', APP_STATE.currentUser?.name || 'Engineer', `Updated properties for ${proj.code}`);
       await persistAllData();
       closeModal('editProjectModal');
       renderProjectsLanding();
       if (APP_STATE.activeTopView === 'production') renderProductionPdfQueue();
-      showToast(`Saved properties for ${proj.code}`, 'success');
+      if (APP_STATE.activeTopView === 'dash') renderDashboardView();
+      showToast(`Saved properties for ${proj.code}${showOnDash ? ' (Selected for /dash)' : ''}`, 'success');
     }
 
     async function confirmDeleteProject() {
@@ -3107,6 +3172,9 @@ Timestamp: ${new Date().toISOString()}
       if (APP_STATE.activeProjectId === projId) {
         APP_STATE.activeProjectId = APP_STATE.projects[0].id;
         APP_STATE.currentDirectory = '';
+      }
+      if (APP_STATE.dashboardProjectId === projId) {
+        APP_STATE.dashboardProjectId = APP_STATE.projects[0].id;
       }
 
       if (TursoCloudSQL.isConnected()) {
@@ -3239,20 +3307,31 @@ Timestamp: ${new Date().toISOString()}
         APP_STATE.selectedFileId = visibleFiles[0].id;
       }
 
+      // Prune stale selections that no longer exist in current project
+      const validFileIds = new Set(projFiles.map(f => f.id));
+      const validFolders = new Set(proj.directories || []);
+      APP_STATE.selectedExplorerFileIds = (APP_STATE.selectedExplorerFileIds || []).filter(id => validFileIds.has(id));
+      APP_STATE.selectedExplorerFolders = (APP_STATE.selectedExplorerFolders || []).filter(dir => validFolders.has(dir));
+
       let html = '';
       if (!query) {
         childFolders.forEach(folderPath => {
           const folderName = folderPath.split('/').pop();
           const countInside = projFiles.filter(f => f.directoryPath === folderPath || f.directoryPath.startsWith(folderPath + '/')).length;
+          const isFolderChecked = APP_STATE.selectedExplorerFolders.includes(folderPath);
           html += `
-            <div ondblclick="selectExplorerDirectory('${escapeHtml(folderPath)}')" onclick="selectExplorerDirectory('${escapeHtml(folderPath)}')" class="grid grid-cols-12 gap-2 px-4 py-2.5 items-center hover:bg-[#1a1a1f] cursor-pointer transition">
+            <div ondblclick="selectExplorerDirectory('${escapeHtml(folderPath)}')" onclick="selectExplorerDirectory('${escapeHtml(folderPath)}')" class="grid grid-cols-12 gap-2 px-4 py-2.5 items-center ${isFolderChecked ? 'bg-[#ff3820]/10' : 'hover:bg-[#1a1a1f]'} cursor-pointer transition">
               <div class="col-span-6 sm:col-span-5 flex items-center gap-2.5 min-w-0">
+                <input type="checkbox" ${isFolderChecked ? 'checked' : ''} onclick="event.stopPropagation(); toggleExplorerFolderSelection('${escapeHtml(folderPath)}')" title="Select folder for ZIP download" class="w-3.5 h-3.5 rounded accent-[#ff3820] cursor-pointer shrink-0" />
                 <span class="text-base">📁</span>
                 <span class="text-xs font-semibold text-white truncate">${escapeHtml(folderName)}</span>
               </div>
               <div class="col-span-2 hidden sm:block text-[11px] font-mono text-[#71717a]">Folder</div>
               <div class="col-span-3 sm:col-span-2 text-[11px] text-[#a1a1aa]">${countInside} item${countInside === 1 ? '' : 's'}</div>
-              <div class="col-span-3 text-right">
+              <div class="col-span-3 flex items-center justify-end gap-1.5">
+                <button type="button" onclick="event.stopPropagation(); downloadExplorerFolderZip('${escapeHtml(folderPath)}')" title="Download folder as ZIP" class="px-2 py-1 rounded-lg bg-[#222226] hover:bg-[#ff3820] text-[#e4e4e7] hover:text-white text-[11px] font-semibold border border-[#323238] transition">
+                  Download
+                </button>
                 <span class="text-[11px] font-semibold text-[#ff523d]">Open →</span>
               </div>
             </div>
@@ -3262,21 +3341,25 @@ Timestamp: ${new Date().toISOString()}
 
       visibleFiles.forEach(f => {
         const isSelected = f.id === APP_STATE.selectedFileId;
+        const isFileChecked = APP_STATE.selectedExplorerFileIds.includes(f.id);
         const statusBadge =
           f.lifecycle === 'Released' ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30' :
           f.lifecycle === 'In Review' ? 'bg-amber-500/15 text-amber-300 border-amber-500/30' :
           'bg-sky-500/15 text-sky-300 border-sky-500/30';
 
         html += `
-          <div onclick="selectExplorerFile('${escapeHtml(f.id)}')" ondblclick="openPartInWorkspace('${escapeHtml(f.id)}')" class="grid grid-cols-12 gap-2 px-4 py-2.5 items-center cursor-pointer transition ${isSelected ? 'bg-[#ff3820]/10 border-l-2 border-l-[#ff3820]' : 'hover:bg-[#1a1a1f]'}">
-            <div class="col-span-6 sm:col-span-5 min-w-0">
-              <div class="flex items-center gap-1.5 flex-wrap">
-                <span class="text-xs font-bold text-white truncate">${escapeHtml(f.fileName)}</span>
-                ${f.isCots ? '<span class="px-1.5 py-0.2 rounded bg-sky-500/20 border border-sky-500/40 text-sky-300 text-[10px] font-mono font-bold">COTS</span>' : ''}
-                ${f.productionCategory && f.lifecycle === 'Released' ? `<span class="px-1.5 py-0.2 rounded bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-[10px] font-mono font-bold">${escapeHtml(f.productionCategory)} ×${f.productionQty || 1}</span>` : ''}
-                ${f.productionCompleted ? '<span class="px-1.5 py-0.2 rounded bg-emerald-600 text-white text-[10px] font-bold">DONE ✓</span>' : ''}
+          <div onclick="selectExplorerFile('${escapeHtml(f.id)}')" ondblclick="openPartInWorkspace('${escapeHtml(f.id)}')" class="grid grid-cols-12 gap-2 px-4 py-2.5 items-center cursor-pointer transition ${isSelected || isFileChecked ? 'bg-[#ff3820]/10 border-l-2 border-l-[#ff3820]' : 'hover:bg-[#1a1a1f]'}">
+            <div class="col-span-6 sm:col-span-5 flex items-center gap-2.5 min-w-0">
+              <input type="checkbox" ${isFileChecked ? 'checked' : ''} onclick="event.stopPropagation(); toggleExplorerFileSelection('${escapeHtml(f.id)}')" title="Select file for download" class="w-3.5 h-3.5 rounded accent-[#ff3820] cursor-pointer shrink-0" />
+              <div class="min-w-0">
+                <div class="flex items-center gap-1.5 flex-wrap">
+                  <span class="text-xs font-bold text-white truncate">${escapeHtml(f.fileName)}</span>
+                  ${f.isCots ? '<span class="px-1.5 py-0.2 rounded bg-sky-500/20 border border-sky-500/40 text-sky-300 text-[10px] font-mono font-bold">COTS</span>' : ''}
+                  ${f.productionCategory && f.lifecycle === 'Released' ? `<span class="px-1.5 py-0.2 rounded bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-[10px] font-mono font-bold">${escapeHtml(f.productionCategory)} ×${f.productionQty || 1}</span>` : ''}
+                  ${f.productionCompleted ? '<span class="px-1.5 py-0.2 rounded bg-emerald-600 text-white text-[10px] font-bold">DONE ✓</span>' : ''}
+                </div>
+                <div class="text-[10px] font-mono text-[#71717a] truncate">${escapeHtml(f.partNumber)} • ${escapeHtml(f.directoryPath || 'Root')}</div>
               </div>
-              <div class="text-[10px] font-mono text-[#71717a] truncate">${escapeHtml(f.partNumber)} • ${escapeHtml(f.directoryPath || 'Root')}</div>
             </div>
 
             <div class="col-span-2 hidden sm:flex items-center gap-1.5">
@@ -3292,9 +3375,12 @@ Timestamp: ${new Date().toISOString()}
 
             <div class="col-span-3 flex items-center justify-end gap-1.5">
               ${f.lockedBy
-                ? `<span class="hidden md:inline text-[10px] font-mono text-amber-300 truncate max-w-[85px]" title="Checked out by ${escapeHtml(f.lockedBy)}">🔒 ${escapeHtml(f.lockedBy)}</span>`
+                ? `<span class="hidden md:inline text-[10px] font-mono text-amber-300 truncate max-w-[75px]" title="Checked out by ${escapeHtml(f.lockedBy)}">🔒 ${escapeHtml(f.lockedBy)}</span>`
                 : `<span class="hidden md:inline text-[10px] text-[#71717a]">Available</span>`
               }
+              <button type="button" onclick="event.stopPropagation(); downloadCurrentRevision('${escapeHtml(f.id)}')" title="Download CAD file" class="px-2 py-1 rounded-lg bg-[#222226] hover:bg-[#ff3820] text-[#e4e4e7] hover:text-white text-[11px] font-semibold border border-[#323238] transition">
+                Download
+              </button>
               <button type="button" onclick="event.stopPropagation(); togglePartMarkedComplete('${escapeHtml(f.id)}')" class="px-2 py-1 rounded-lg ${f.productionCompleted ? 'bg-emerald-600 text-white' : 'bg-[#222226] hover:bg-emerald-600/80 text-[#d4d4d8] hover:text-white'} text-[11px] font-semibold border border-[#323238] transition">
                 ${f.productionCompleted ? 'Marked ✓' : 'Mark'}
               </button>
@@ -3310,12 +3396,201 @@ Timestamp: ${new Date().toISOString()}
         html = `<div class="p-8 text-center text-xs text-[#71717a]">No CAD items match the current directory or filter.</div>`;
       }
       rowsEl.innerHTML = html;
+      updateExplorerSelectionToolbar(visibleFiles, query ? [] : childFolders);
       renderExplorerPreviewPane();
     }
 
     function selectExplorerFile(fileId) {
       APP_STATE.selectedFileId = fileId;
       renderFileExplorer();
+    }
+
+    function toggleExplorerFileSelection(fileId) {
+      const idx = APP_STATE.selectedExplorerFileIds.indexOf(fileId);
+      if (idx === -1) APP_STATE.selectedExplorerFileIds.push(fileId);
+      else APP_STATE.selectedExplorerFileIds.splice(idx, 1);
+      renderFileExplorer();
+    }
+
+    function toggleExplorerFolderSelection(folderPath) {
+      const idx = APP_STATE.selectedExplorerFolders.indexOf(folderPath);
+      if (idx === -1) APP_STATE.selectedExplorerFolders.push(folderPath);
+      else APP_STATE.selectedExplorerFolders.splice(idx, 1);
+      renderFileExplorer();
+    }
+
+    function toggleSelectAllExplorerItems(checked) {
+      const proj = getActiveProject();
+      if (!proj) return;
+      const query = (document.getElementById('explorerSearchInput')?.value || '').trim().toLowerCase();
+      const projFiles = APP_STATE.files.filter(f => f.projectId === proj.id);
+
+      const childFolders = query ? [] : (proj.directories || []).filter(d => {
+        if (!APP_STATE.currentDirectory) return !d.includes('/');
+        if (!d.startsWith(APP_STATE.currentDirectory + '/')) return false;
+        const remainder = d.slice(APP_STATE.currentDirectory.length + 1);
+        return !remainder.includes('/');
+      });
+
+      const visibleFiles = projFiles.filter(f => {
+        const dirMatch = !APP_STATE.currentDirectory
+          ? true
+          : (f.directoryPath === APP_STATE.currentDirectory || f.directoryPath.startsWith(APP_STATE.currentDirectory + '/'));
+        if (!dirMatch) return false;
+        if (APP_STATE.vaultFilter === 'locked' && !f.lockedBy) return false;
+        if (['Released', 'In Review', 'In Work'].includes(APP_STATE.vaultFilter) && f.lifecycle !== APP_STATE.vaultFilter) return false;
+        if (query) {
+          const hay = `${f.partNumber} ${f.fileName} ${f.directoryPath}`.toLowerCase();
+          if (!hay.includes(query)) return false;
+        }
+        return true;
+      });
+
+      if (checked) {
+        visibleFiles.forEach(f => {
+          if (!APP_STATE.selectedExplorerFileIds.includes(f.id)) APP_STATE.selectedExplorerFileIds.push(f.id);
+        });
+        childFolders.forEach(dir => {
+          if (!APP_STATE.selectedExplorerFolders.includes(dir)) APP_STATE.selectedExplorerFolders.push(dir);
+        });
+      } else {
+        const visFileSet = new Set(visibleFiles.map(f => f.id));
+        const visFolderSet = new Set(childFolders);
+        APP_STATE.selectedExplorerFileIds = APP_STATE.selectedExplorerFileIds.filter(id => !visFileSet.has(id));
+        APP_STATE.selectedExplorerFolders = APP_STATE.selectedExplorerFolders.filter(dir => !visFolderSet.has(dir));
+      }
+      renderFileExplorer();
+    }
+
+    function updateExplorerSelectionToolbar(visibleFiles, childFolders) {
+      const btn = document.getElementById('btnExplorerDownloadSelected');
+      const lbl = document.getElementById('btnExplorerDownloadSelectedLabel');
+      const selectAllChk = document.getElementById('explorerSelectAllCheckbox');
+
+      const totalSelected = (APP_STATE.selectedExplorerFileIds?.length || 0) + (APP_STATE.selectedExplorerFolders?.length || 0);
+      if (btn && lbl) {
+        if (totalSelected > 0) {
+          btn.classList.remove('hidden');
+          lbl.textContent = `Download Selected (${totalSelected})`;
+        } else {
+          btn.classList.add('hidden');
+        }
+      }
+
+      if (selectAllChk) {
+        const totalInView = visibleFiles.length + childFolders.length;
+        if (totalInView === 0) {
+          selectAllChk.checked = false;
+          selectAllChk.indeterminate = false;
+        } else {
+          const checkedInView =
+            visibleFiles.filter(f => APP_STATE.selectedExplorerFileIds.includes(f.id)).length +
+            childFolders.filter(d => APP_STATE.selectedExplorerFolders.includes(d)).length;
+          selectAllChk.checked = checkedInView === totalInView;
+          selectAllChk.indeterminate = checkedInView > 0 && checkedInView < totalInView;
+        }
+      }
+    }
+
+    async function fetchCadBinaryPayload(fileObj, projCode) {
+      const revNum = fileObj.activeRev;
+      let buf = await LocalMeshVault.getBinary(`${fileObj.id}-v${revNum}`);
+      if (!buf) {
+        buf = await GoogleDriveVault.downloadBinaryFromDrive(projCode, fileObj.directoryPath, fileObj.fileName, revNum, true);
+      }
+      if (buf) return buf;
+      return `Raven Workbench PDM CAD Export\nProject: ${projCode}\nPart: ${fileObj.partNumber}\nFile: ${fileObj.fileName}\nRevision: v${revNum}\nDirectory: ${fileObj.directoryPath || 'Root'}\n`;
+    }
+
+    async function downloadExplorerFolderZip(folderPath) {
+      const proj = getActiveProject();
+      if (!proj) return;
+      const folderFiles = APP_STATE.files.filter(f =>
+        f.projectId === proj.id &&
+        (f.directoryPath === folderPath || f.directoryPath.startsWith(folderPath + '/'))
+      );
+      if (folderFiles.length === 0) {
+        showToast(`Folder "${folderPath}" has no CAD files to download.`, 'warning');
+        return;
+      }
+      if (typeof JSZip === 'undefined') {
+        showToast('ZIP library unavailable; downloading first file directly.', 'warning');
+        await downloadCurrentRevision(folderFiles[0].id);
+        return;
+      }
+      showToast(`Packaging ${folderFiles.length} file(s) from ${folderPath}...`, 'info');
+      const zip = new JSZip();
+      for (const f of folderFiles) {
+        const relDir = f.directoryPath || '';
+        const zipEntryPath = relDir ? `${relDir}/${f.fileName}` : f.fileName;
+        const payload = await fetchCadBinaryPayload(f, proj.code);
+        zip.file(zipEntryPath, payload);
+      }
+      const blob = await zip.generateAsync({ type: 'blob' });
+      const safeName = folderPath.replace(/[^a-zA-Z0-9_-]+/g, '_');
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${proj.code}_${safeName}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      showToast(`Downloaded ${proj.code}_${safeName}.zip (${folderFiles.length} files)`, 'success');
+    }
+
+    async function downloadSelectedExplorerItems() {
+      const proj = getActiveProject();
+      if (!proj) return;
+
+      const fileMap = new Map();
+      (APP_STATE.selectedExplorerFileIds || []).forEach(id => {
+        const f = APP_STATE.files.find(item => item.id === id);
+        if (f) fileMap.set(f.id, f);
+      });
+      (APP_STATE.selectedExplorerFolders || []).forEach(folderPath => {
+        APP_STATE.files
+          .filter(f => f.projectId === proj.id && (f.directoryPath === folderPath || f.directoryPath.startsWith(folderPath + '/')))
+          .forEach(f => fileMap.set(f.id, f));
+      });
+
+      const filesToDownload = Array.from(fileMap.values());
+      if (filesToDownload.length === 0) {
+        showToast('No files found in the selected items.', 'warning');
+        return;
+      }
+
+      if (filesToDownload.length === 1 && (APP_STATE.selectedExplorerFolders?.length || 0) === 0) {
+        await downloadCurrentRevision(filesToDownload[0].id);
+        return;
+      }
+
+      if (typeof JSZip === 'undefined') {
+        for (const f of filesToDownload) {
+          await downloadCurrentRevision(f.id);
+        }
+        return;
+      }
+
+      showToast(`Creating ZIP archive for ${filesToDownload.length} CAD file(s)...`, 'info');
+      const zip = new JSZip();
+      for (const f of filesToDownload) {
+        const relDir = f.directoryPath || '';
+        const zipEntryPath = relDir ? `${relDir}/${f.fileName}` : f.fileName;
+        const payload = await fetchCadBinaryPayload(f, proj.code);
+        zip.file(zipEntryPath, payload);
+      }
+
+      const blob = await zip.generateAsync({ type: 'blob' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${proj.code}_CAD_Selection_${filesToDownload.length}_files.zip`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      showToast(`Downloaded ${filesToDownload.length} files as ZIP archive.`, 'success');
     }
 
     function renderExplorerPreviewPane() {
@@ -4392,14 +4667,29 @@ Revision: v${revNum}
     }
 
     // -------------------------------------------------------------------------
-    // /dash PAGE: PRODUCTION COMPLETION DASHBOARD
+    // /dash PAGE: PRODUCTION COMPLETION DASHBOARD (FULL-SCREEN, NO MENU BAR)
     // -------------------------------------------------------------------------
+    function getDashboardProject() {
+      const dashId = APP_STATE.dashboardProjectId || APP_STATE.activeProjectId;
+      return APP_STATE.projects.find(p => p.id === dashId) || getActiveProject();
+    }
+
     function renderDashboardView() {
       const container = document.getElementById('dashViewContainer');
-      const proj = getActiveProject();
+      const proj = getDashboardProject();
       if (!container || !proj) return;
 
-      const releasedParts = getProductionReleasedParts();
+      const dirOrder = proj.directories || [];
+      const releasedParts = APP_STATE.files
+        .filter(f => f.projectId === proj.id && f.lifecycle === 'Released' && !f.isCots)
+        .sort((a, b) => {
+          const idxA = dirOrder.indexOf(a.directoryPath);
+          const idxB = dirOrder.indexOf(b.directoryPath);
+          const prioA = idxA === -1 ? 999 : idxA;
+          const prioB = idxB === -1 ? 999 : idxB;
+          if (prioA !== prioB) return prioA - prioB;
+          return a.partNumber.localeCompare(b.partNumber);
+        });
       const totalParts = releasedParts.length;
       const completedParts = releasedParts.filter(f => Boolean(f.productionCompleted)).length;
       const overallPct = totalParts > 0 ? Math.round((completedParts / totalParts) * 100) : 0;
@@ -4417,8 +4707,9 @@ Revision: v${revNum}
         <div class="rounded-3xl bg-[#18181b] border border-[#2e2e34] p-6 space-y-4 shadow-xl">
           <div class="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <div class="text-xs font-mono uppercase tracking-wider text-[#ff523d] font-bold">/dash • Production Progress</div>
+              <div class="text-xs font-mono uppercase tracking-wider text-[#ff523d] font-bold">/dash • ${escapeHtml(proj.name)}</div>
               <h1 class="text-2xl sm:text-3xl font-extrabold text-white mt-0.5">${escapeHtml(proj.code)} Manufacturing Dashboard</h1>
+              <p class="text-[11px] text-[#71717a] mt-1">Active dashboard project is configured in <span class="text-[#d4d4d8] font-medium">Projects → Options</span>.</p>
             </div>
             <div class="text-right">
               <div class="text-3xl sm:text-4xl font-extrabold font-mono text-emerald-400">${overallPct}%</div>
