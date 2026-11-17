@@ -2353,7 +2353,7 @@
         const cleanParentId = this.extractFolderId(parentId);
         const cacheKey = `${cleanParentId}::${name}`;
         if (this.folderCache[cacheKey]) return this.folderCache[cacheKey];
-        const q = encodeURIComponent(`name='${name.replace(/'/g, "\'")}' and '${cleanParentId}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`);
+        const q = encodeURIComponent(`name='${name.replace(/'/g, "\\'")}' and '${cleanParentId}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`);
         const searchResp = await fetch(
           `https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)&supportsAllDrives=true&includeItemsFromAllDrives=true`,
           { headers: { Authorization: `Bearer ${APP_STATE.drive.accessToken}` } }
@@ -2481,19 +2481,11 @@ Timestamp: ${new Date().toISOString()}
 `;
 
           const multipartBlob = new Blob([
-            `--${boundary}
-Content-Type: application/json; charset=UTF-8
-
-`,
+            `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n`,
             JSON.stringify(metadata),
-            `
---${boundary}
-Content-Type: application/octet-stream
-
-`,
+            `\r\n--${boundary}\r\nContent-Type: application/octet-stream\r\n\r\n`,
             payloadPart,
-            `
---${boundary}--`
+            `\r\n--${boundary}--`
           ], { type: `multipart/related; boundary=${boundary}` });
 
           const uploadResp = await fetch(
@@ -2598,18 +2590,10 @@ Content-Type: application/octet-stream
           } else {
             const boundary = 'raven_manifest_' + Date.now();
             const body =
-              `--${boundary}
-Content-Type: application/json; charset=UTF-8
-
-` +
-              `${JSON.stringify({ name: '_raven_workbench_manifest.json', parents: [rootId] })}
-` +
-              `--${boundary}
-Content-Type: application/json
-
-` +
-              `${manifestPayload}
---${boundary}--`;
+              `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n` +
+              `${JSON.stringify({ name: '_raven_workbench_manifest.json', parents: [rootId] })}\r\n` +
+              `--${boundary}\r\nContent-Type: application/json\r\n\r\n` +
+              `${manifestPayload}\r\n--${boundary}--`;
             await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&supportsAllDrives=true', {
               method: 'POST',
               headers: {
@@ -2726,6 +2710,7 @@ Content-Type: application/json
 
       if (TursoCloudSQL.isConnected()) {
         await TursoCloudSQL.pullAllFromTurso(true);
+        seedInitialVaultIfEmpty();
       }
 
       const user = APP_STATE.users.find(u => u.email.toLowerCase() === email);
@@ -3049,8 +3034,7 @@ Content-Type: application/json
       document.getElementById('editProjectIdInput').value = proj.id;
       document.getElementById('editProjectCodeInput').value = proj.code;
       document.getElementById('editProjectNameInput').value = proj.name;
-      document.getElementById('editProjectDirsInput').value = (proj.directories || []).join('
-');
+      document.getElementById('editProjectDirsInput').value = (proj.directories || []).join('\n');
       document.getElementById('editProjectModalSubtitle').textContent = `Configure ${proj.code} — ${proj.name}`;
       document.getElementById('confirmDeleteCodeHint').textContent = proj.code;
       document.getElementById('confirmDeleteProjectInput').value = '';
@@ -3086,8 +3070,7 @@ Content-Type: application/json
       const newCode = (document.getElementById('editProjectCodeInput').value || '').trim().toUpperCase();
       const newName = (document.getElementById('editProjectNameInput').value || '').trim();
       const rawDirs = (document.getElementById('editProjectDirsInput').value || '')
-        .split('
-')
+        .split('\n')
         .map(s => s.trim().replace(/^\/+|\/+$/g, ''))
         .filter(Boolean);
 
